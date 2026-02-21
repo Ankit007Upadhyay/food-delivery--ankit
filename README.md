@@ -93,16 +93,9 @@ npm install
 npm run dev
 ```
 
-## 🔑 Default Admin Credentials
 
-- **Email:** wizard7@gmail.com
-- **Password:** wizGoFood2004
 
-## 📱 Access URLs
 
-- **Customer App:** http://localhost:5173
-- **Admin Panel:** http://localhost:5174
-- **Backend API:** http://localhost:4000
 
 ## 📁 Project Structure
 
@@ -145,30 +138,7 @@ Food-Delivery/
 - `POST /api/cart/remove` - Remove item from cart
 - `POST /api/cart/get` - Get cart items
 
-### Orders
-- `POST /api/order/place` - Place new order
-- `GET /api/order/list` - Get all orders (admin only)
-- `POST /api/order/status` - Update order status (admin only)
 
-## 🔧 Configuration
-
-### Port Settings
-- Backend: 4000
-- Frontend: 5173
-- Admin: 5174
-
-### Database
-The system uses MongoDB with the following collections:
-- `users` - User accounts and authentication
-- `foods` - Food items and inventory
-- `orders` - Customer orders
-
-## 🎨 Customization
-
-### Logo
-Replace `newlogo.png` in:
-- `frontend/src/assets/frontend_assets/`
-- `admin/src/assets/`
 
 ### Colors & Styling
 Modify CSS files in respective component directories.
