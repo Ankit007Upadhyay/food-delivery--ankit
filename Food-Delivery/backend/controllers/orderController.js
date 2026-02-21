@@ -1,6 +1,8 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
+import notificationModel from "../models/notificationModel.js";
 import Stripe from "stripe";
+import { createNotification } from "./notificationController.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -20,8 +22,32 @@ const placeOrder = async (req, res) => {
       paymentStatus: req.body.paymentMethod === "cod" ? "pending" : "pending",
       restaurantOwners: restaurantOwnerIds
     });
+    
     await newOrder.save();
     await userModel.findByIdAndUpdate(req.body.userId, { cartData: {} });
+
+    // Create notifications for restaurant owners
+    for (const ownerId of restaurantOwnerIds) {
+      if (ownerId) { // Only create notification if ownerId exists
+        await createNotification(
+          ownerId,
+          "New Order Received!",
+          `You have a new order worth $${req.body.amount}. Please check your orders panel.`,
+          "order_placed",
+          newOrder._id
+        );
+      }
+    }
+
+    // Create notification for customer
+    const customer = await userModel.findById(req.body.userId);
+    await createNotification(
+      req.body.userId,
+      "Order Placed Successfully!",
+      `Your order worth $${req.body.amount} has been placed and is being processed.`,
+      "order_placed",
+      newOrder._id
+    );
 
     if (req.body.paymentMethod === "cod") {
       // Cash on delivery - order placed directly
@@ -113,9 +139,19 @@ const updateStatus = async (req, res) => {
   try {
     let userData = await userModel.findById(req.body.userId);
     if (userData && userData.role === "admin") {
-      await orderModel.findByIdAndUpdate(req.body.orderId, {
+      const order = await orderModel.findByIdAndUpdate(req.body.orderId, {
         status: req.body.status,
       });
+
+      // Create notification for customer
+      await createNotification(
+        order.userId,
+        "Order Status Updated",
+        `Your order status has been updated to: ${req.body.status}`,
+        "order_status",
+        req.body.orderId
+      );
+
       res.json({ success: true, message: "Status Updated Successfully" });
     }else{
       res.json({ success: false, message: "You are not an admin" });
@@ -130,40 +166,121 @@ const updateStatus = async (req, res) => {
 const getRestroOwnerOrders = async (req, res) => {
   try {
     let userData = await userModel.findById(req.body.userId);
-    if (userData && userData.role === "restro_owner") {
-      // Get orders that contain items from this restaurant owner
-      const orders = await orderModel.find({ 
-        restaurantOwners: req.body.userId 
-      }).populate('userId', 'name email').populate('items');
-      res.json({ success: true, data: orders });
-    } else {
-      res.json({ success: false, message: "You are not a restaurant owner" });
+    
+    if (!userData) {
+      return res.json({ success: false, message: "User not found" });
     }
+    
+    if (userData.role !== "restro_owner") {
+      return res.json({ success: false, message: "You are not a restaurant owner" });
+    }
+    
+    // Get all orders and filter by items.addedBy
+    const orders = await orderModel.find({}).populate({
+      path: 'userId',
+      model: 'user',
+      select: 'name email'
+    }).populate('items');
+    
+    // Filter orders that contain items from this restaurant owner
+    const filteredOrders = orders.filter(order => {
+      const hasOwnerItem = order.items.some(item => {
+        return item.addedBy && item.addedBy.toString() === req.body.userId.toString();
+      });
+      return hasOwnerItem;
+    });
+    
+    res.json({ success: true, data: filteredOrders });
   } catch (error) {
-    console.log(error);
+    console.log("Error in getRestroOwnerOrders:", error);
     res.json({ success: false, message: "Error" });
   }
 };
 
-// Update order status for restaurant owners
+// Remove delivered orders from both customer and restaurant owner sides
+const removeDeliveredOrders = async (req, res) => {
+  try {
+    // Find all delivered orders
+    const deliveredOrders = await orderModel.find({ status: "Delivered" });
+    
+    if (deliveredOrders.length === 0) {
+      return res.json({ success: true, message: "No delivered orders found", removedCount: 0 });
+    }
+    
+    // Delete all delivered orders
+    const result = await orderModel.deleteMany({ status: "Delivered" });
+    
+    res.json({ 
+      success: true, 
+      message: `Successfully removed ${result.deletedCount} delivered orders`,
+      removedCount: result.deletedCount
+    });
+    
+  } catch (error) {
+    console.log("Error removing delivered orders:", error);
+    res.json({ success: false, message: "Error removing delivered orders" });
+  }
+};
+
+// Auto-remove delivered orders (call this function periodically or when status is updated to Delivered)
+const autoRemoveDeliveredOrders = async () => {
+  try {
+    const deliveredOrders = await orderModel.find({ status: "Delivered" });
+    if (deliveredOrders.length > 0) {
+      await orderModel.deleteMany({ status: "Delivered" });
+      console.log(`Auto-removed ${deliveredOrders.length} delivered orders`);
+    }
+  } catch (error) {
+    console.log("Error in auto-remove delivered orders:", error);
+  }
+};
 const updateRestroOrderStatus = async (req, res) => {
   try {
     let userData = await userModel.findById(req.body.userId);
     if (userData && userData.role === "restro_owner") {
-      // Check if this order belongs to this restaurant owner
-      const order = await orderModel.findOne({ 
-        _id: req.body.orderId,
-        restaurantOwners: req.body.userId 
-      });
+      // Get the order and check if it belongs to this restaurant owner
+      const order = await orderModel.findById(req.body.orderId).populate('items');
       
       if (!order) {
         return res.json({ success: false, message: "Order not found" });
       }
       
-      await orderModel.findByIdAndUpdate(req.body.orderId, {
-        status: req.body.status,
+      // Check if this order contains items from this restaurant owner
+      const hasOwnerItem = order.items.some(item => {
+        return item.addedBy && item.addedBy.toString() === req.body.userId.toString();
       });
-      res.json({ success: true, message: "Status Updated Successfully" });
+      
+      if (!hasOwnerItem) {
+        return res.json({ success: false, message: "You can only update your own orders" });
+      }
+      
+      // Update the order status
+      await orderModel.findByIdAndUpdate(req.body.orderId, {
+        status: req.body.status
+      });
+      
+      // Create notification for customer
+      await createNotification(
+        order.userId,
+        "Order Status Updated",
+        `Your order status has been updated to: ${req.body.status}`,
+        "status_update",
+        req.body.orderId
+      );
+      
+      // If status is "Delivered", remove the order immediately
+      if (req.body.status === "Delivered") {
+        console.log(`Order ${req.body.orderId} marked as Delivered - removing from system`);
+        await orderModel.findByIdAndDelete(req.body.orderId);
+        
+        return res.json({ 
+          success: true, 
+          message: "Order marked as delivered and removed from system",
+          orderRemoved: true
+        });
+      }
+      
+      res.json({ success: true, message: "Status updated successfully" });
     } else {
       res.json({ success: false, message: "You are not a restaurant owner" });
     }
@@ -173,4 +290,4 @@ const updateRestroOrderStatus = async (req, res) => {
   }
 };
 
-export { placeOrder, verifyOrder, userOrders, listOrders, updateStatus, getRestroOwnerOrders, updateRestroOrderStatus };
+export { placeOrder, verifyOrder, userOrders, listOrders, updateStatus, getRestroOwnerOrders, updateRestroOrderStatus, removeDeliveredOrders, autoRemoveDeliveredOrders };

@@ -4,6 +4,7 @@ import { assets } from "../../assets/frontend_assets/assets";
 import { Link, useNavigate } from "react-router-dom";
 import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
+import Notifications from "../Notifications/Notifications";
 
 const Navbar = ({ setShowLogin }) => {
   const [menu, setMenu] = useState("home");
@@ -59,6 +60,7 @@ const Navbar = ({ setShowLogin }) => {
           </Link>
           <div className={getTotalCartAmount() === 0 ? "" : "dot"}></div>
         </div>
+        {token && <Notifications />}
         {!token ? (
           <button onClick={() => setShowLogin(true)}>sign in</button>
         ) : (

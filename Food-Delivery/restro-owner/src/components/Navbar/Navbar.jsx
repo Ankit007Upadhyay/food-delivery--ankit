@@ -4,6 +4,7 @@ import { assets } from "../../assets/assets";
 import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
 import {useNavigate } from "react-router-dom";
+import Notifications from "../Notifications/Notifications";
 
 const Navbar = () => {
   const navigate=useNavigate();
@@ -19,12 +20,15 @@ const Navbar = () => {
   return (
     <div className="navbar">
       <img className="logo" src={assets.newlogo} alt="" />
-      {token && admin ? (
-        <p className="login-conditon" onClick={logout}>Logout</p>
-      ) : (
-        <p className="login-conditon" onClick={()=>navigate("/")}>Login</p>
-      )}
-      <img className="profile" src={assets.profile_image} alt="" />
+      <div className="navbar-right">
+        {token && admin && <Notifications />}
+        {token && admin ? (
+          <p className="login-conditon" onClick={logout}>Logout</p>
+        ) : (
+          <p className="login-conditon" onClick={()=>navigate("/")}>Login</p>
+        )}
+        <img className="profile" src={assets.profile_image} alt="" />
+      </div>
     </div>
   );
 };

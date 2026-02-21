@@ -9,10 +9,32 @@ import { useContext } from "react";
 import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
 
-const Orders = ({ url }) => {
+const Orders = () => {
   const navigate = useNavigate();
-  const { token, admin } = useContext(StoreContext);
+  const { token, admin, url } = useContext(StoreContext);
   const [orders, setOrders] = useState([]);
+
+  const cleanDeliveredOrders = async () => {
+    try {
+      const response = await axios.post(url + "/api/order/remove-delivered", {}, {
+        headers: { token },
+      });
+      
+      if (response.data.success) {
+        if (response.data.removedCount > 0) {
+          toast.success(`Removed ${response.data.removedCount} delivered orders`);
+        } else {
+          toast.info("No delivered orders to remove");
+        }
+        await fetchAllOrder(); // Refresh the orders list
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error cleaning delivered orders:", error);
+      toast.error("Error cleaning delivered orders");
+    }
+  };
 
   const fetchAllOrder = async () => {
     const response = await axios.post(url + "/api/order/restro-orders", {}, {
@@ -33,23 +55,51 @@ const Orders = ({ url }) => {
       { headers: { token } }
     );
     if (response.data.success) {
-      toast.success(response.data.message);
-      await fetchAllOrder();
+      if (response.data.orderRemoved) {
+        // Order was marked as delivered and removed
+        toast.success("Order marked as delivered and removed from system");
+        await fetchAllOrder(); // Refresh the orders list
+      } else {
+        toast.success(response.data.message);
+        await fetchAllOrder();
+      }
     } else {
       toast.error(response.data.message);
     }
   };
   useEffect(() => {
-    if (!admin && !token) {
+    if (!token) {
       toast.error("Please Login First");
       navigate("/");
+    } else {
+      fetchAllOrder();
     }
-    fetchAllOrder();
-  }, []);
+  }, [token, navigate]);
+
+  // Auto-refresh orders every 30 seconds
+  useEffect(() => {
+    if (token) {
+      const interval = setInterval(() => {
+        fetchAllOrder();
+      }, 30000); // Refresh every 30 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [token]);
 
   return (
     <div className="order add">
-      <h3>Order Page</h3>
+      <div className="order-header">
+        <h3>Order Page</h3>
+        <div className="order-buttons">
+          <button onClick={fetchAllOrder} className="refresh-btn">
+            🔄 Refresh Orders
+          </button>
+          <button onClick={cleanDeliveredOrders} className="clean-btn">
+            🗑️ Clean Delivered
+          </button>
+        </div>
+      </div>
       <div className="order-list">
         {orders.map((order, index) => (
           <div key={index} className="order-item">
