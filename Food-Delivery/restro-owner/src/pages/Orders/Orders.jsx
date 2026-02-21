@@ -15,7 +15,7 @@ const Orders = ({ url }) => {
   const [orders, setOrders] = useState([]);
 
   const fetchAllOrder = async () => {
-    const response = await axios.get(url + "/api/order/list", {
+    const response = await axios.post(url + "/api/order/restro-orders", {}, {
       headers: { token },
     });
     if (response.data.success) {
@@ -25,7 +25,7 @@ const Orders = ({ url }) => {
 
   const statusHandler = async (event, orderId) => {
     const response = await axios.post(
-      url + "/api/order/status",
+      url + "/api/order/restro-status",
       {
         orderId,
         status: event.target.value,
@@ -83,6 +83,10 @@ const Orders = ({ url }) => {
             </div>
             <p>Items: {order.items.length}</p>
             <p>${order.amount}</p>
+            <div className="order-item-payment">
+              <p><strong>Payment:</strong> {order.paymentMethod === "cod" ? "Cash on Delivery" : "Online Payment"}</p>
+              <p><strong>Status:</strong> {order.paymentStatus}</p>
+            </div>
             <select
               onChange={(event) => statusHandler(event, order._id)}
               value={order.status}

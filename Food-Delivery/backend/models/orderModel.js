@@ -8,6 +8,9 @@ const orderSchema = new mongoose.Schema({
   status: { type: String, default: "Food Processing" },
   date: { type: Date, default: Date.now() },
   payment: { type: Boolean, default: false },
+  paymentMethod: { type: String, enum: ["cod", "online"], required: true },
+  paymentStatus: { type: String, enum: ["pending", "paid", "failed"], default: "pending" },
+  restaurantOwners: [{ type: mongoose.Schema.Types.ObjectId, ref: 'user' }], // Restaurant owners who need to fulfill this order
 });
 
 const orderModel =

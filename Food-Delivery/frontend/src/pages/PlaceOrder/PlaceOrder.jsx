@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom'
 const PlaceOrder = () => {
   const navigate= useNavigate();
 
-  const { getTotalCartAmount, token, food_list, cartItems, url } =
+  const { getTotalCartAmount, token, food_list, cartItems, setCartItems, url } =
     useContext(StoreContext);
   const [data, setData] = useState({
     firstName: "",
@@ -21,6 +21,7 @@ const PlaceOrder = () => {
     country: "",
     phone: "",
   });
+  const [paymentMethod, setPaymentMethod] = useState("cod");
 
   const onChangeHandler = (event) => {
     const name = event.target.name;
@@ -42,14 +43,29 @@ const PlaceOrder = () => {
       address: data,
       items: orderItems,
       amount: getTotalCartAmount() + 2,
+      paymentMethod: paymentMethod
     };
     
-    let response= await axios.post(url+"/api/order/place",orderData,{headers:{token}});
-    if(response.data.success){
-      const {session_url}=response.data;
-      window.location.replace(session_url);
-    }else{
-      toast.error("Errors!")
+    if (paymentMethod === "cod") {
+      // Cash on delivery - place order directly
+      let response = await axios.post(url + "/api/order/place", orderData, { headers: { token } });
+      if (response.data.success) {
+        toast.success("Order placed successfully! Pay on delivery.");
+        navigate("/myorders");
+        // Clear cart by resetting context
+        setCartItems({});
+      } else {
+        toast.error("Error placing order");
+      }
+    } else {
+      // Online payment - use Stripe
+      let response = await axios.post(url + "/api/order/place", orderData, { headers: { token } });
+      if (response.data.success) {
+        const { session_url } = response.data;
+        window.location.replace(session_url);
+      } else {
+        toast.error("Error!");
+      }
     }
   };
 
@@ -167,8 +183,37 @@ const PlaceOrder = () => {
               </b>
             </div>
           </div>
-          <button type="submit">PROCEED TO PAYMENT</button>
         </div>
+        
+        <div className="payment-method">
+          <h2>Payment Method</h2>
+          <div className="payment-option">
+            <input
+              type="radio"
+              id="cod"
+              name="paymentMethod"
+              value="cod"
+              checked={paymentMethod === "cod"}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+            />
+            <label htmlFor="cod">Cash on Delivery</label>
+          </div>
+          <div className="payment-option">
+            <input
+              type="radio"
+              id="online"
+              name="paymentMethod"
+              value="online"
+              checked={paymentMethod === "online"}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+            />
+            <label htmlFor="online">Online Payment (Card/UPI)</label>
+          </div>
+        </div>
+        
+        <button type="submit">
+          {paymentMethod === "cod" ? "PLACE ORDER" : "PROCEED TO PAYMENT"}
+        </button>
       </div>
     </form>
   );

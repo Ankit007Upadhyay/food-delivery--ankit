@@ -33,6 +33,38 @@
 .place-order .cart-total button{
     margin-top: 30px;
 }
+.payment-method {
+    margin-top: 30px;
+    padding: 20px;
+    border: 1px solid #c5c5c5;
+    border-radius: 8px;
+    background-color: #fafafa;
+}
+.payment-method h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #333;
+}
+.payment-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+.payment-option input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: tomato;
+}
+.payment-option label {
+    font-size: 16px;
+    color: #555;
+    cursor: pointer;
+}
+.payment-option label:hover {
+    color: tomato;
+}
 @media (max-width:800px) {
     .place-order{
         flex-direction: column;

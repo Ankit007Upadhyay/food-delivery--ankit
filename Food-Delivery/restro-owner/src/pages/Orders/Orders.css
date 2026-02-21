@@ -26,6 +26,16 @@
     padding: 10px;
     outline: none;
 }
+.order-item-payment {
+    font-size: 12px;
+    margin-top: 10px;
+}
+.order-item-payment p {
+    margin: 2px 0;
+}
+.order-item-payment strong {
+    color: #333;
+}
 @media (max-width:1000px) {
     .order-item{
         font-size: 12px;
