@@ -9,47 +9,12 @@ The Restaurant Owner Portal allows restaurant owners to register, get approved b
 - **Registration with Approval**: Restaurant owners can sign up and wait for admin approval
 - **Food Management**: Add, edit, and remove their own food items
 - **Order Management**: View and manage orders for their restaurant
-- **Authentication**: Secure login with role-based access
+-
 
-### For Admins
-- **Approval System**: Review and approve/reject restaurant owner registration requests
-- **Owner Management**: View all approved restaurant owners
-- **Full Control**: Admin can still manage all food items and orders
-
-## Access URLs
-
-- **Customer App**: http://localhost:5173
-- **Admin Panel**: http://localhost:5174
-- **Restaurant Owner Portal**: http://localhost:5175
-- **Backend API**: http://localhost:4000
-
-## Registration Process
-
-### Step 1: Restaurant Owner Registration
-1. Go to http://localhost:5175
-2. Click "Create a new account"
-3. Fill in:
-   - Your name
-   - Email
-   - Password
-   - Restaurant name
-   - Restaurant address
-4. Submit registration
-
-### Step 2: Admin Approval
-1. Admin logs into http://localhost:5174
-2. Navigate to "Restro Owners" in sidebar
-3. View pending requests
-4. Approve or reject requests
-
-### Step 3: Restaurant Owner Login
-1. Once approved, restaurant owner can login at http://localhost:5175
-2. Use email and password
-3. Access food management features
 
 ## User Roles & Permissions
 
-### Admin (wizard7@gmail.com)
+
 - Can manage all food items
 - Can view all orders
 - Can approve/reject restaurant owners
@@ -120,12 +85,6 @@ npm run install:all
 npm run dev
 ```
 
-### Start Individual Services
-```bash
-npm run start:backend      # Backend on port 4000
-npm run start:frontend     # Customer app on port 5173
-npm run start:admin        # Admin panel on port 5174
-npm run start:restro-owner # Restaurant owner portal on port 5175
 ```
 
 ## Security Features
@@ -152,10 +111,6 @@ npm run start:restro-owner # Restaurant owner portal on port 5175
    - Verify admin login credentials
    - Check database connection
 
-### Default Credentials
-
-- **Admin Email**: wizard7@gmail.com
-- **Admin Password**: wizGoFood2004
 
 ## Development Notes
 
