@@ -196,3 +196,4 @@ For technical support or questions, please refer to the documentation or contact
 ---
 
 **Note:** This is a standalone project with no external dependencies or GitHub connections.
+
