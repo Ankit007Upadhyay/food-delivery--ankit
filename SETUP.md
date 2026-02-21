@@ -14,10 +14,7 @@ C:\Users\ankit\OneDrive\Desktop\GoRestro-Standalone\
 
 ## 🚀 Quick Start (3 Steps)
 
-### Step 1: Install Dependencies
-```bash
-cd "C:\Users\ankit\OneDrive\Desktop\GoRestro-Standalone"
-npm run install:all
+
 ```
 
 ### Step 2: Setup Database
@@ -30,15 +27,7 @@ npm run setup
 npm run dev
 ```
 
-## 🔑 Access Your System
 
-- **Customer App:** http://localhost:5173
-- **Admin Panel:** http://localhost:5174  
-- **Backend API:** http://localhost:4000
-
-**Admin Login:**
-- Email: `wizard7@gmail.com`
-- Password: `wizGoFood2004`
 
 ## 📁 Complete Project Structure
 
@@ -91,13 +80,7 @@ GoRestro-Standalone/
 
 ## 🔧 Manual Setup (if needed)
 
-### Backend
-```bash
-cd backend
-npm install
-# Create .env file with MONGO_URL, JWT_SECRET, PORT
-node setupDatabase.js
-npm start
+
 ```
 
 ### Frontend
