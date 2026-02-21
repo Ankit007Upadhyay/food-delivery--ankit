@@ -16,9 +16,18 @@ const loginUser = async (req, res) => {
     if (!isMatch) {
       return res.json({ success: false, message: "Invalid Credentials" });
     }
+    
+    // Check if user is approved (for restaurant owners)
+    if (!user.isApproved) {
+      return res.json({ 
+        success: false, 
+        message: "Your account is pending admin approval" 
+      });
+    }
+    
     const role=user.role;
     const token = createToken(user._id);
-    res.json({ success: true, token,role });
+    res.json({ success: true, token, role, isApproved: user.isApproved });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: "Error" });
@@ -34,7 +43,8 @@ const createToken = (id) => {
 // register user
 
 const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role, restaurantName, restaurantAddress } = req.body;
+  console.log("Registration data received:", { name, email, role, restaurantName, restaurantAddress });
   try {
     // checking user is already exist
     const exists = await userModel.findOne({ email });
@@ -54,21 +64,57 @@ const registerUser = async (req, res) => {
     }
 
     // hashing user password
-
     const salt = await bcrypt.genSalt(Number(process.env.SALT));
     const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Determine approval status based on role
+    let isApproved = true;
+    let userRole = role || "user";
+    console.log("Determined userRole:", userRole);
+    
+    if (userRole === "restro_owner") {
+      isApproved = false; // Restaurant owners need admin approval
+      console.log("Setting isApproved to false for restaurant owner");
+      if (!restaurantName || !restaurantAddress) {
+        return res.json({ 
+          success: false, 
+          message: "Restaurant name and address are required for restaurant owners" 
+        });
+      }
+    }
 
     const newUser = new userModel({
       name: name,
       email: email,
       password: hashedPassword,
-      role: email === "wizard7@gmail.com" ? "admin" : "user"
+      role: userRole,
+      isApproved: isApproved,
+      restaurantName: restaurantName,
+      restaurantAddress: restaurantAddress
+    });
+    
+    console.log("User object to be saved:", {
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+      isApproved: newUser.isApproved,
+      restaurantName: newUser.restaurantName
     });
 
     const user = await newUser.save();
-    const role=user.role;
-    const token = createToken(user._id);
-    res.json({ success: true, token, role});
+    
+    // Only provide token if user is approved (not for pending restaurant owners)
+    if (user.isApproved) {
+      const token = createToken(user._id);
+      res.json({ success: true, token, role: user.role, isApproved: user.isApproved });
+    } else {
+      res.json({ 
+        success: true, 
+        message: "Restaurant owner registration submitted. Waiting for admin approval.",
+        role: user.role, 
+        isApproved: user.isApproved 
+      });
+    }
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: "Error" });

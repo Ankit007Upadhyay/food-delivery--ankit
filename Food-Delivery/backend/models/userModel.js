@@ -5,7 +5,10 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    role: { type: String, default:"user" },
+    role: { type: String, default:"user", enum: ["user", "admin", "restro_owner"] },
+    isApproved: { type: Boolean, default: true },
+    restaurantName: { type: String },
+    restaurantAddress: { type: String },
     cartData: { type: Object, default: {} },
   },
   { minimize: false }

@@ -8,8 +8,9 @@
     "start:backend": "cd backend && npm start",
     "start:frontend": "cd frontend && npm run dev",
     "start:admin": "cd admin && npm run dev",
-    "install:all": "cd backend && npm install && cd ../frontend && npm install && cd ../admin && npm install",
-    "dev": "concurrently \"npm run start:backend\" \"npm run start:frontend\" \"npm run start:admin\""
+    "start:restro-owner": "cd restro-owner && npm run dev",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install && cd ../admin && npm install && cd ../restro-owner && npm install",
+    "dev": "concurrently \"npm run start:backend\" \"npm run start:frontend\" \"npm run start:admin\" \"npm run start:restro-owner\""
   },
   "keywords": [
     "food-delivery",

@@ -12,14 +12,15 @@ const addFood = async (req, res) => {
     price: req.body.price,
     category: req.body.category,
     image: image_filename,
+    addedBy: req.body.userId // Track who added the food item
   });
   try {
     let userData = await userModel.findById(req.body.userId);
-    if (userData && userData.role === "admin") {
+    if (userData && (userData.role === "admin" || userData.role === "restro_owner")) {
       await food.save();
       res.json({ success: true, message: "Food Added" });
     } else {
-      res.json({ success: false, message: "You are not admin" });
+      res.json({ success: false, message: "You are not authorized to add food items" });
     }
   } catch (error) {
     console.log(error);
@@ -42,13 +43,18 @@ const listFood = async (req, res) => {
 const removeFood = async (req, res) => {
   try {
     let userData = await userModel.findById(req.body.userId);
-    if (userData && userData.role === "admin") {
-      const food = await foodModel.findById(req.body.id);
+    const food = await foodModel.findById(req.body.id);
+    
+    if (!food) {
+      return res.json({ success: false, message: "Food item not found" });
+    }
+    
+    if (userData && (userData.role === "admin" || (userData.role === "restro_owner" && food.addedBy.toString() === req.body.userId))) {
       fs.unlink(`uploads/${food.image}`, () => {});
       await foodModel.findByIdAndDelete(req.body.id);
       res.json({ success: true, message: "Food Removed" });
     } else {
-      res.json({ success: false, message: "You are not admin" });
+      res.json({ success: false, message: "You are not authorized to remove this food item" });
     }
   } catch (error) {
     console.log(error);
