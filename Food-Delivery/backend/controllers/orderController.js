@@ -1,6 +1,7 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import notificationModel from "../models/notificationModel.js";
+import foodModel from "../models/foodModel.js";
 import Stripe from "stripe";
 import { createNotification } from "./notificationController.js";
 
@@ -10,8 +11,20 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const placeOrder = async (req, res) => {
   const frontend_url = "http://localhost:5173";
   try {
-    // Get unique restaurant owners from order items
-    const restaurantOwnerIds = [...new Set(req.body.items.map(item => item.addedBy))];
+    // Get the restaurant owner from the first item (all items should be from same restaurant)
+    const restaurantOwnerId = req.body.items[0]?.addedBy;
+    
+    // Validate that all items are from the same restaurant
+    const allFromSameRestaurant = req.body.items.every(item => 
+      item.addedBy && item.addedBy.toString() === restaurantOwnerId.toString()
+    );
+    
+    if (!allFromSameRestaurant) {
+      return res.json({ 
+        success: false, 
+        message: "All items must be from the same restaurant" 
+      });
+    }
     
     const newOrder = new orderModel({
       userId: req.body.userId,
@@ -20,58 +33,60 @@ const placeOrder = async (req, res) => {
       address: req.body.address,
       paymentMethod: req.body.paymentMethod,
       paymentStatus: req.body.paymentMethod === "cod" ? "pending" : "pending",
-      restaurantOwners: restaurantOwnerIds
+      restaurantOwners: [restaurantOwnerId], // Single restaurant owner
+      status: "pending_acceptance" // Order is pending acceptance by restaurant owner
     });
     
     await newOrder.save();
     await userModel.findByIdAndUpdate(req.body.userId, { cartData: {} });
 
-    // Create notifications for restaurant owners
-    for (const ownerId of restaurantOwnerIds) {
-      if (ownerId) { // Only create notification if ownerId exists
-        await createNotification(
-          ownerId,
-          "New Order Received!",
-          `You have a new order worth $${req.body.amount}. Please check your orders panel.`,
-          "order_placed",
-          newOrder._id
-        );
+    // Create notification for the specific restaurant owner
+    if (restaurantOwnerId) {
+      console.log("=== Creating notification for restaurant owner ===");
+      console.log("Restaurant Owner ID:", restaurantOwnerId);
+      console.log("Order ID:", newOrder._id);
+      console.log("Order Amount:", req.body.amount);
+      
+      const notification = await createNotification(
+        restaurantOwnerId,
+        "New Order - Action Required!",
+        `You have a new order worth $${req.body.amount}. Please accept or reject the order.`,
+        "order_pending_acceptance",
+        newOrder._id
+      );
+      
+      if (notification) {
+        console.log("✅ Notification created successfully:", notification._id);
+      } else {
+        console.log("❌ Failed to create notification");
       }
-    }
-
-    // Create notification for customer
-    const customer = await userModel.findById(req.body.userId);
-    await createNotification(
-      req.body.userId,
-      "Order Placed Successfully!",
-      `Your order worth $${req.body.amount} has been placed and is being processed.`,
-      "order_placed",
-      newOrder._id
-    );
-
-    if (req.body.paymentMethod === "cod") {
-      // Cash on delivery - order placed directly
-      res.json({ success: true, message: "Order placed successfully" });
     } else {
-      // Online payment - create Stripe session
+      console.log("❌ No restaurant owner ID found - cannot create notification");
+    }
+    
+    if (req.body.paymentMethod === "cod") {
+      await newOrder.save();
+      res.json({ success: true, message: "Order Placed - Waiting for Restaurant Acceptance" });
+    } else {
+      // Stripe payment logic remains the same
       const line_items = req.body.items.map((item) => ({
         price_data: {
-          currency: "usd",
+          currency: "inr",
           product_data: {
             name: item.name,
           },
-          unit_amount: item.price * 100,
+          unit_amount: item.price * 100 * 80,
         },
         quantity: item.quantity,
       }));
 
       line_items.push({
         price_data: {
-          currency: "usd",
+          currency: "inr",
           product_data: {
             name: "Delivery Charges",
           },
-          unit_amount: 2 * 100,
+          unit_amount: 2 * 100 * 80,
         },
         quantity: 1,
       });
@@ -175,24 +190,344 @@ const getRestroOwnerOrders = async (req, res) => {
       return res.json({ success: false, message: "You are not a restaurant owner" });
     }
     
-    // Get all orders and filter by items.addedBy
+    console.log("=== Getting orders for restaurant owner ===");
+    console.log("Restaurant Owner ID:", req.body.userId);
+    console.log("Restaurant Owner Name:", userData.name);
+    console.log("Restaurant Name:", userData.restaurantName);
+    
+    // Get all orders and populate
     const orders = await orderModel.find({}).populate({
       path: 'userId',
       model: 'user',
       select: 'name email'
-    }).populate('items');
+    }).populate({
+      path: 'items._id',
+      model: 'food',
+      select: 'name addedBy'
+    });
+    
+    console.log("Total orders in database:", orders.length);
+    
+    // Debug: Show all orders with their status
+    orders.forEach(order => {
+      const orderId = order._id ? order._id.toString().slice(-8) : 'UNKNOWN';
+      console.log(`Order ${orderId} - Status: ${order.status} - Items: ${order.items.length}`);
+      order.items.forEach(item => {
+        const addedById = item._id?.addedBy || item.addedBy;
+        console.log(`  - Item: ${item.name}, addedBy: ${addedById || 'NULL'}`);
+      });
+    });
     
     // Filter orders that contain items from this restaurant owner
     const filteredOrders = orders.filter(order => {
+      const orderId = order._id ? order._id.toString().slice(-8) : 'UNKNOWN';
+      console.log(`\nChecking order ${orderId} (status: ${order.status})`);
+      
       const hasOwnerItem = order.items.some(item => {
-        return item.addedBy && item.addedBy.toString() === req.body.userId.toString();
+        const addedById = item._id?.addedBy || item.addedBy;
+        const belongsToOwner = addedById && 
+               addedById.toString() === req.body.userId.toString();
+        
+        console.log(`  Item "${item.name}" - addedBy: ${addedById || 'NULL'} - belongsToOwner: ${belongsToOwner}`);
+        
+        if (belongsToOwner) {
+          console.log(`✅ Order ${orderId} contains item "${item.name}" from this restaurant`);
+        }
+        return belongsToOwner;
       });
+      
+      if (!hasOwnerItem) {
+        console.log(`❌ Order ${orderId} has no items from this restaurant`);
+      }
+      
       return hasOwnerItem;
+    }).map(order => {
+      // For each order, only include items that belong to this restaurant owner
+      const ownerItems = order.items.filter(item => {
+        const addedById = item._id?.addedBy || item.addedBy;
+        return addedById && addedById.toString() === req.body.userId.toString();
+      });
+      
+      return {
+        ...order.toObject(),
+        items: ownerItems
+      };
+    });
+    
+    console.log("\n=== FINAL RESULTS ===");
+    console.log("Filtered orders for this restaurant:", filteredOrders.length);
+    filteredOrders.forEach(order => {
+      const orderId = order._id ? order._id.toString().slice(-8) : 'UNKNOWN';
+      console.log(`✅ Order ${orderId} - Status: ${order.status}`);
     });
     
     res.json({ success: true, data: filteredOrders });
   } catch (error) {
     console.log("Error in getRestroOwnerOrders:", error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+// Cancel order by customer
+const cancelOrder = async (req, res) => {
+  try {
+    console.log("=== Customer Canceling Order ===");
+    const { orderId, reason } = req.body;
+    const userId = req.body.userId;
+    
+    console.log("Order ID:", orderId);
+    console.log("Customer ID:", userId);
+    console.log("Cancellation reason:", reason);
+    
+    // Find the order
+    const order = await orderModel.findById(orderId);
+    
+    if (!order) {
+      console.log("❌ Order not found");
+      return res.json({ success: false, message: "Order not found" });
+    }
+    
+    // Check if order belongs to the customer
+    if (order.userId.toString() !== userId) {
+      console.log("❌ Order does not belong to this customer");
+      return res.json({ success: false, message: "Unauthorized to cancel this order" });
+    }
+    
+    // Check if order can be cancelled (only pending_acceptance status)
+    if (order.status !== "pending_acceptance") {
+      console.log("❌ Order cannot be cancelled. Current status:", order.status);
+      return res.json({ 
+        success: false, 
+        message: "Order can only be cancelled before restaurant accepts it" 
+      });
+    }
+    
+    // Update order status
+    order.status = "cancelled";
+    order.cancellationReason = reason || "Customer cancelled the order";
+    order.cancelledAt = new Date();
+    await order.save();
+    
+    console.log("✅ Order cancelled successfully");
+    
+    // Find the restaurant owner who added the food items
+    if (order.items && order.items.length > 0) {
+      console.log("=== Looking for restaurant owner ===");
+      console.log("First item ID:", order.items[0]._id);
+      console.log("First item addedBy:", order.items[0].addedBy);
+      
+      // Try to get restaurant owner from order item directly first
+      let restaurantOwnerId = order.items[0].addedBy;
+      
+      // If not found in order item, try to find from food model
+      if (!restaurantOwnerId) {
+        const foodItem = await foodModel.findById(order.items[0]._id);
+        if (foodItem && foodItem.addedBy) {
+          restaurantOwnerId = foodItem.addedBy;
+        }
+      }
+      
+      if (restaurantOwnerId) {
+        console.log("=== Sending cancellation notification to restaurant owner ===");
+        console.log("Restaurant Owner ID:", restaurantOwnerId);
+        console.log("Order ID:", orderId);
+        console.log("Order Amount:", order.amount);
+        console.log("Customer Name:", order.address.firstName + " " + order.address.lastName);
+        
+        try {
+          console.log("=== Creating cancellation notification ===");
+          
+          const notification = await createNotification(
+            restaurantOwnerId,
+            "Order Cancelled by Customer",
+            `Order #${orderId.slice(-8)} for ₹${order.amount} has been cancelled by customer. Reason: ${reason || "No reason provided"}`,
+            "order_cancelled",
+            orderId
+          );
+          
+          if (notification) {
+            console.log("✅ Cancellation notification created successfully:", notification._id);
+          } else {
+            console.log("❌ Failed to create cancellation notification");
+          }
+        } catch (notificationError) {
+          console.log("❌ Error creating notification:", notificationError.message);
+        }
+      } else {
+        console.log("❌ Could not find restaurant owner for notification");
+      }
+    } else {
+      console.log("❌ No items found in order for notification");
+    }
+    
+    res.json({ 
+      success: true, 
+      message: "Order cancelled successfully",
+      data: order
+    });
+    
+  } catch (error) {
+    console.log("❌ Error cancelling order:", error);
+    res.json({ success: false, message: "Error cancelling order" });
+  }
+};
+
+// Accept order for restaurant owner
+const acceptOrder = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const restaurantOwnerId = req.body.userId;
+    
+    // Get the order
+    const order = await orderModel.findById(orderId);
+    
+    if (!order) {
+      return res.json({ success: false, message: "Order not found" });
+    }
+    
+    // Check if order belongs to this restaurant owner
+    if (!order.restaurantOwners.includes(restaurantOwnerId)) {
+      return res.json({ success: false, message: "This order is not yours" });
+    }
+    
+    // Check if order is already processed
+    if (order.status !== "pending_acceptance") {
+      return res.json({ success: false, message: "Order has already been processed" });
+    }
+    
+    // Update order status to Food Processing
+    order.status = "Food Processing";
+    await order.save();
+    
+    // Create notification for customer
+    await createNotification(
+      order.userId,
+      "Order Accepted!",
+      `Your order has been accepted by the restaurant and is now being prepared.`,
+      "order_accepted",
+      orderId
+    );
+    
+    res.json({ 
+      success: true, 
+      message: "Order accepted successfully! Order is now in Food Processing."
+    });
+    
+  } catch (error) {
+    console.log("Error accepting order:", error);
+    res.json({ success: false, message: "Error accepting order" });
+  }
+};
+
+// Reject order for restaurant owner
+const rejectOrder = async (req, res) => {
+  try {
+    const { orderId, reason } = req.body;
+    const restaurantOwnerId = req.body.userId;
+    
+    // Get the order
+    const order = await orderModel.findById(orderId);
+    
+    if (!order) {
+      return res.json({ success: false, message: "Order not found" });
+    }
+    
+    // Check if order belongs to this restaurant owner
+    if (!order.restaurantOwners.includes(restaurantOwnerId)) {
+      return res.json({ success: false, message: "This order is not yours" });
+    }
+    
+    // Check if order is already processed
+    if (order.status !== "pending_acceptance") {
+      return res.json({ success: false, message: "Order has already been processed" });
+    }
+    
+    // Update order status to rejected
+    order.status = "rejected";
+    await order.save();
+    
+    // Create notification for customer
+    await createNotification(
+      order.userId,
+      "Order Rejected",
+      `Your order has been rejected by the restaurant${reason ? ': ' + reason : ''}. Please contact support for assistance.`,
+      "order_rejected",
+      orderId
+    );
+    
+    res.json({ 
+      success: true, 
+      message: "Order rejected successfully"
+    });
+    
+  } catch (error) {
+    console.log("Error rejecting order:", error);
+    res.json({ success: false, message: "Error rejecting order" });
+  }
+};
+
+// Update order status for restaurant owners
+const updateRestroOrderStatus = async (req, res) => {
+  try {
+    let userData = await userModel.findById(req.body.userId);
+    if (userData && userData.role === "restro_owner") {
+      // Get the order first to check current status
+      const order = await orderModel.findById(req.body.orderId);
+      
+      if (!order) {
+        return res.json({ success: false, message: "Order not found" });
+      }
+      
+      // Check if order belongs to this restaurant owner
+      if (!order.restaurantOwners.includes(req.body.userId)) {
+        return res.json({ success: false, message: "This order is not yours" });
+      }
+      
+      // Check if order is still pending acceptance
+      if (order.status === "pending_acceptance") {
+        return res.json({ 
+          success: false, 
+          message: "Please accept or reject the order first before updating status" 
+        });
+      }
+      
+      // Update the order status
+      const updatedOrder = await orderModel.findByIdAndUpdate(req.body.orderId, {
+        status: req.body.status,
+      });
+
+      // Create notification for customer
+      await createNotification(
+        order.userId,
+        "Order Status Updated",
+        `Your order status has been updated to: ${req.body.status}`,
+        "order_status",
+        req.body.orderId
+      );
+
+      // Auto-remove delivered orders
+      if (req.body.status === "Delivered") {
+        await orderModel.findByIdAndDelete(req.body.orderId);
+        await createNotification(
+          order.userId,
+          "Order Completed",
+          "Your order has been delivered and completed!",
+          "order_delivered",
+          req.body.orderId
+        );
+        
+        return res.json({ 
+          success: true, 
+          message: "Order marked as delivered and removed from system" 
+        });
+      }
+
+      res.json({ success: true, message: "Status updated successfully" });
+    } else {
+      res.json({ success: false, message: "You are not a restaurant owner" });
+    }
+  } catch (error) {
+    console.log(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -234,60 +569,18 @@ const autoRemoveDeliveredOrders = async () => {
     console.log("Error in auto-remove delivered orders:", error);
   }
 };
-const updateRestroOrderStatus = async (req, res) => {
-  try {
-    let userData = await userModel.findById(req.body.userId);
-    if (userData && userData.role === "restro_owner") {
-      // Get the order and check if it belongs to this restaurant owner
-      const order = await orderModel.findById(req.body.orderId).populate('items');
-      
-      if (!order) {
-        return res.json({ success: false, message: "Order not found" });
-      }
-      
-      // Check if this order contains items from this restaurant owner
-      const hasOwnerItem = order.items.some(item => {
-        return item.addedBy && item.addedBy.toString() === req.body.userId.toString();
-      });
-      
-      if (!hasOwnerItem) {
-        return res.json({ success: false, message: "You can only update your own orders" });
-      }
-      
-      // Update the order status
-      await orderModel.findByIdAndUpdate(req.body.orderId, {
-        status: req.body.status
-      });
-      
-      // Create notification for customer
-      await createNotification(
-        order.userId,
-        "Order Status Updated",
-        `Your order status has been updated to: ${req.body.status}`,
-        "status_update",
-        req.body.orderId
-      );
-      
-      // If status is "Delivered", remove the order immediately
-      if (req.body.status === "Delivered") {
-        console.log(`Order ${req.body.orderId} marked as Delivered - removing from system`);
-        await orderModel.findByIdAndDelete(req.body.orderId);
-        
-        return res.json({ 
-          success: true, 
-          message: "Order marked as delivered and removed from system",
-          orderRemoved: true
-        });
-      }
-      
-      res.json({ success: true, message: "Status updated successfully" });
-    } else {
-      res.json({ success: false, message: "You are not a restaurant owner" });
-    }
-  } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: "Error" });
-  }
-};
 
-export { placeOrder, verifyOrder, userOrders, listOrders, updateStatus, getRestroOwnerOrders, updateRestroOrderStatus, removeDeliveredOrders, autoRemoveDeliveredOrders };
+export { 
+  placeOrder, 
+  verifyOrder, 
+  userOrders, 
+  listOrders, 
+  updateStatus, 
+  getRestroOwnerOrders, 
+  updateRestroOrderStatus, 
+  acceptOrder, 
+  rejectOrder,
+  cancelOrder,
+  removeDeliveredOrders, 
+  autoRemoveDeliveredOrders 
+};

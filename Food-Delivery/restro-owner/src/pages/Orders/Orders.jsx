@@ -1,153 +1,267 @@
-import React from "react";
+import React, { useState, useEffect, useContext } from "react";
 import "./Orders.css";
-import { useState } from "react";
+import { assets } from "../../assets/assets";
+import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useEffect } from "react";
-import { assets } from "../../assets/assets";
-import { useContext } from "react";
-import { StoreContext } from "../../context/StoreContext";
-import { useNavigate } from "react-router-dom";
 
 const Orders = () => {
-  const navigate = useNavigate();
-  const { token, admin, url } = useContext(StoreContext);
+  const { url, token } = useContext(StoreContext);
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const cleanDeliveredOrders = async () => {
+  const fetchOrders = async () => {
     try {
-      const response = await axios.post(url + "/api/order/remove-delivered", {}, {
-        headers: { token },
+      setLoading(true);
+      const response = await axios.post(url + "/api/order/restro-orders", {}, {
+        headers: { token }
       });
       
       if (response.data.success) {
-        if (response.data.removedCount > 0) {
-          toast.success(`Removed ${response.data.removedCount} delivered orders`);
-        } else {
-          toast.info("No delivered orders to remove");
-        }
-        await fetchAllOrder(); // Refresh the orders list
+        setOrders(response.data.data);
       } else {
         toast.error(response.data.message);
       }
     } catch (error) {
-      console.error("Error cleaning delivered orders:", error);
-      toast.error("Error cleaning delivered orders");
+      console.error("Error fetching orders:", error);
+      toast.error("Error fetching orders");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchAllOrder = async () => {
-    const response = await axios.post(url + "/api/order/restro-orders", {}, {
-      headers: { token },
-    });
-    if (response.data.success) {
-      setOrders(response.data.data);
-    }
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchOrders();
+    setTimeout(() => setRefreshing(false), 1000);
   };
 
-  const statusHandler = async (event, orderId) => {
-    const response = await axios.post(
-      url + "/api/order/restro-status",
-      {
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const response = await axios.post(url + "/api/order/restro-status", {
         orderId,
-        status: event.target.value,
-      },
-      { headers: { token } }
-    );
-    if (response.data.success) {
-      if (response.data.orderRemoved) {
-        // Order was marked as delivered and removed
-        toast.success("Order marked as delivered and removed from system");
-        await fetchAllOrder(); // Refresh the orders list
+        status: newStatus,
+        userId: localStorage.getItem("userId")
+      }, {
+        headers: { token }
+      });
+
+      if (response.data.success) {
+        toast.success("Order status updated successfully!");
+        fetchOrders();
       } else {
-        toast.success(response.data.message);
-        await fetchAllOrder();
+        toast.error(response.data.message);
       }
-    } else {
-      toast.error(response.data.message);
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      toast.error("Error updating order status");
     }
   };
-  useEffect(() => {
-    if (!token) {
-      toast.error("Please Login First");
-      navigate("/");
-    } else {
-      fetchAllOrder();
-    }
-  }, [token, navigate]);
 
-  // Auto-refresh orders every 30 seconds
+  const acceptOrder = async (orderId) => {
+    try {
+      const response = await axios.post(url + "/api/order/accept-order", {
+        orderId,
+        userId: localStorage.getItem("userId")
+      }, {
+        headers: { token }
+      });
+
+      if (response.data.success) {
+        toast.success("Order accepted successfully!");
+        fetchOrders();
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error accepting order:", error);
+      toast.error("Error accepting order");
+    }
+  };
+
+  const rejectOrder = async (orderId) => {
+    try {
+      const response = await axios.post(url + "/api/order/reject-order", {
+        orderId,
+        userId: localStorage.getItem("userId"),
+        reason: "Restaurant rejected the order"
+      }, {
+        headers: { token }
+      });
+
+      if (response.data.success) {
+        toast.success("Order rejected successfully!");
+        fetchOrders();
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error rejecting order:", error);
+      toast.error("Error rejecting order");
+    }
+  };
+
   useEffect(() => {
     if (token) {
-      const interval = setInterval(() => {
-        fetchAllOrder();
-      }, 30000); // Refresh every 30 seconds
-
-      return () => clearInterval(interval);
+      fetchOrders();
     }
   }, [token]);
 
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      "pending_acceptance": { color: "#f59e0b", icon: "⏳", text: "Pending Acceptance" },
+      "Food Processing": { color: "#3b82f6", icon: "👨‍🍳", text: "Food Processing" },
+      "Out for delivery": { color: "#8b5cf6", icon: "🚚", text: "Out for Delivery" },
+      "Delivered": { color: "#10b981", icon: "✅", text: "Delivered" },
+      "rejected": { color: "#ef4444", icon: "❌", text: "Rejected" },
+      "cancelled": { color: "#ef4444", icon: "🚫", text: "Cancelled by Customer" }
+    };
+
+    const config = statusConfig[status] || { color: "#6b7280", icon: "📦", text: status };
+    
+    return (
+      <span 
+        className="status-badge" 
+        style={{ backgroundColor: config.color }}
+      >
+        <span className="status-icon">{config.icon}</span>
+        {config.text}
+      </span>
+    );
+  };
+
   return (
-    <div className="order add">
-      <div className="order-header">
-        <h3>Order Page</h3>
-        <div className="order-buttons">
-          <button onClick={fetchAllOrder} className="refresh-btn">
-            🔄 Refresh Orders
-          </button>
-          <button onClick={cleanDeliveredOrders} className="clean-btn">
-            🗑️ Clean Delivered
+    <div className="orders-page">
+      <div className="orders-header">
+        <div className="header-content">
+          <h1 className="page-title">📋 Order Management</h1>
+          <p className="page-subtitle">Manage and track your restaurant orders</p>
+        </div>
+        <button 
+          className={`refresh-btn ${refreshing ? 'spinning' : ''}`}
+          onClick={handleRefresh}
+          disabled={refreshing}
+        >
+          <span className="refresh-icon">🔄</span>
+          {refreshing ? 'Refreshing...' : 'Refresh'}
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="loading-state">
+          <div className="spinner"></div>
+          <p>Loading orders...</p>
+        </div>
+      ) : orders.filter(order => order.status !== "cancelled").length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">📭</div>
+          <h3>No active orders</h3>
+          <p>When customers place orders, they will appear here</p>
+          {orders.filter(order => order.status === "cancelled").length > 0 && (
+            <p style={{fontSize: '14px', color: '#999', marginTop: '10px'}}>
+              You have {orders.filter(order => order.status === "cancelled").length} cancelled order(s)
+            </p>
+          )}
+          <button className="modern-btn" onClick={handleRefresh}>
+            Check for Orders
           </button>
         </div>
-      </div>
-      <div className="order-list">
-        {orders.map((order, index) => (
-          <div key={index} className="order-item">
-            <img src={assets.parcel_icon} alt="" />
-            <div>
-              <p className="order-item-food">
-                {order.items.map((item, index) => {
-                  if (index === order.items.length - 1) {
-                    return item.name + " x " + item.quantity;
-                  } else {
-                    return item.name + " x " + item.quantity + ", ";
-                  }
-                })}
-              </p>
-              <p className="order-item-name">
-                {order.address.firstName + " " + order.address.lastName}
-              </p>
-              <div className="order-item-address">
-                <p>{order.address.street + ","}</p>
-                <p>
-                  {order.address.city +
-                    ", " +
-                    order.address.state +
-                    ", " +
-                    order.address.country +
-                    ", " +
-                    order.address.zipcode}
-                </p>
+      ) : (
+        <div className="orders-grid">
+          {orders.filter(order => order.status !== "cancelled").map((order, index) => (
+            <div key={order._id} className="order-card slide-in" style={{ animationDelay: `${index * 0.1}s` }}>
+              <div className="order-header">
+                <div className="order-info">
+                  <h3 className="order-id">Order #{order._id.slice(-8)}</h3>
+                  <p className="customer-name">👤 {order.userId?.name || 'Customer'}</p>
+                </div>
+                <div className="order-amount">
+                  <span className="amount">₹{order.amount}</span>
+                </div>
               </div>
-              <p className="order-item-phone">{order.address.phone}</p>
+
+              <div className="order-items">
+                <h4>🍽️ Order Items:</h4>
+                {order.items.map((item, itemIndex) => (
+                  <div key={itemIndex} className="order-item">
+                    <img 
+                      src={`${url}/images/${item.image}`} 
+                      alt={item.name}
+                      className="item-image"
+                    />
+                    <div className="item-details">
+                      <span className="item-name">{item.name}</span>
+                      <span className="item-quantity">x{item.quantity}</span>
+                    </div>
+                    <span className="item-price">₹{item.price * item.quantity}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="order-status">
+                <div className="status-section">
+                  <h4>Order Status:</h4>
+                  {getStatusBadge(order.status)}
+                </div>
+              </div>
+
+              <div className="order-actions">
+                {order.status === "pending_acceptance" && (
+                  <div className="action-buttons">
+                    <button 
+                      className="accept-btn"
+                      onClick={() => acceptOrder(order._id)}
+                    >
+                      <span>✅</span>
+                      Accept Order
+                    </button>
+                    <button 
+                      className="reject-btn"
+                      onClick={() => rejectOrder(order._id)}
+                    >
+                      <span>❌</span>
+                      Reject Order
+                    </button>
+                  </div>
+                )}
+
+                {order.status === "cancelled" && (
+                  <div className="cancelled-message">
+                    <span>🚫 Order cancelled by customer</span>
+                    {order.cancellationReason && (
+                      <p className="cancellation-reason">
+                        Reason: {order.cancellationReason}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {order.status !== "pending_acceptance" && order.status !== "rejected" && order.status !== "cancelled" && order.status !== "Delivered" && (
+                  <div className="status-update">
+                    <label>Update Status:</label>
+                    <select 
+                      className="status-select"
+                      onChange={(e) => updateOrderStatus(order._id, e.target.value)}
+                      value={order.status}
+                    >
+                      <option value="Food Processing">👨‍🍳 Food Processing</option>
+                      <option value="Out for delivery">🚚 Out for Delivery</option>
+                      <option value="Delivered">✅ Delivered</option>
+                    </select>
+                  </div>
+                )}
+
+                {order.status === "rejected" && (
+                  <div className="rejected-message">
+                    <span>❌ Order has been rejected</span>
+                  </div>
+                )}
+              </div>
             </div>
-            <p>Items: {order.items.length}</p>
-            <p>${order.amount}</p>
-            <div className="order-item-payment">
-              <p><strong>Payment:</strong> {order.paymentMethod === "cod" ? "Cash on Delivery" : "Online Payment"}</p>
-              <p><strong>Status:</strong> {order.paymentStatus}</p>
-            </div>
-            <select
-              onChange={(event) => statusHandler(event, order._id)}
-              value={order.status}
-            >
-              <option value="Food Processing">Food Processing</option>
-              <option value="Out for delivery">Out for delivery</option>
-              <option value="Delivered">Delivered</option>
-            </select>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

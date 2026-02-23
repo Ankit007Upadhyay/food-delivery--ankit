@@ -31,10 +31,15 @@ const addFood = async (req, res) => {
 // all foods
 const listFood = async (req, res) => {
   try {
+    console.log("=== Fetching all food items ===");
     const foods = await foodModel.find({});
+    console.log("✅ Found", foods.length, "food items in database");
+    if (foods.length > 0) {
+      console.log("Sample food item:", foods[0]);
+    }
     res.json({ success: true, data: foods });
   } catch (error) {
-    console.log(error);
+    console.log("❌ Error fetching food list:", error);
     res.json({ success: false, message: "Error" });
   }
 };

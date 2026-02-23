@@ -58,11 +58,20 @@ const StoreContextProvider = (props) => {
   };
 
   const fetchFoodList = async () => {
-    const response = await axios.get(url + "/api/food/list");
-    if (response.data.success) {
-      setFoodList(response.data.data);
-    } else {
-      alert("Error! Products are not fetching..");
+    console.log("=== Fetching food list ===");
+    try {
+      const response = await axios.get(url + "/api/food/list");
+      console.log("Food list response:", response.data);
+      if (response.data.success) {
+        console.log("✅ Food list fetched successfully:", response.data.data.length, "items");
+        setFoodList(response.data.data);
+      } else {
+        console.log("❌ Error fetching food list:", response.data.message);
+        alert("Error! Products are not fetching..");
+      }
+    } catch (error) {
+      console.log("❌ Network error fetching food list:", error);
+      alert("Network error! Please check if the backend is running.");
     }
   };
 

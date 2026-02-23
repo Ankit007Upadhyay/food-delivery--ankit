@@ -1,0 +1,261 @@
+.profile-page{
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+.profile-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.profile-header h3{
+    color: #333;
+    font-size: 24px;
+    margin: 0;
+}
+
+.edit-btn{
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.3s;
+}
+
+.edit-btn:hover{
+    background-color: #45a049;
+}
+
+.profile-content{
+    display: flex;
+    justify-content: center;
+}
+
+.profile-card{
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 30px;
+    width: 100%;
+    max-width: 600px;
+}
+
+.profile-avatar{
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.profile-avatar img{
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 4px solid #4CAF50;
+    object-fit: cover;
+}
+
+.profile-form{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label{
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group textarea{
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus{
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.form-group textarea{
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-actions{
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.save-btn{
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.3s;
+}
+
+.save-btn:hover{
+    background-color: #45a049;
+}
+
+.cancel-btn{
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.3s;
+}
+
+.cancel-btn:hover{
+    background-color: #da190b;
+}
+
+.profile-info{
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.info-section{
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+}
+
+.info-section:last-child{
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.info-section h4{
+    color: #333;
+    font-size: 18px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.info-item{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.info-item:last-child{
+    border-bottom: none;
+}
+
+.info-item .label{
+    font-weight: 500;
+    color: #666;
+    font-size: 14px;
+}
+
+.info-item .value{
+    font-weight: 400;
+    color: #333;
+    font-size: 14px;
+    text-align: right;
+    max-width: 60%;
+    word-wrap: break-word;
+}
+
+.role-badge{
+    background-color: #2196F3;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge{
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge.approved{
+    background-color: #4CAF50;
+    color: white;
+}
+
+.status-badge.pending{
+    background-color: #ff9800;
+    color: white;
+}
+
+.loading{
+    text-align: center;
+    padding: 50px;
+    font-size: 18px;
+    color: #666;
+}
+
+@media (max-width: 768px){
+    .profile-page{
+        padding: 10px;
+    }
+    
+    .profile-card{
+        padding: 20px;
+    }
+    
+    .info-item{
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .info-item .value{
+        text-align: left;
+        max-width: 100%;
+    }
+    
+    .form-actions{
+        flex-direction: column;
+    }
+    
+    .save-btn,
+    .cancel-btn{
+        width: 100%;
+        justify-content: center;
+    }
+}

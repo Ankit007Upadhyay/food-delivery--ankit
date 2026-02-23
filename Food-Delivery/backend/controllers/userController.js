@@ -121,4 +121,83 @@ const registerUser = async (req, res) => {
   }
 };
 
-export { loginUser, registerUser };
+// Get user profile
+const getUserProfile = async (req, res) => {
+  try {
+    console.log("=== Backend: Getting User Profile ===");
+    console.log("User ID from token:", req.body.userId);
+    
+    const user = await userModel.findById(req.body.userId).select('-password');
+    
+    if (!user) {
+      console.log("❌ User not found in database");
+      return res.json({ success: false, message: "User not found" });
+    }
+    
+    console.log("✅ User found:", user.name, user.email);
+    console.log("User role:", user.role);
+    console.log("Restaurant name:", user.restaurantName);
+    
+    res.json({ success: true, data: user });
+  } catch (error) {
+    console.log("❌ Error fetching profile:", error);
+    res.json({ success: false, message: "Error fetching profile" });
+  }
+};
+
+// Update user profile
+const updateUserProfile = async (req, res) => {
+  try {
+    const { name, email, restaurantName, restaurantAddress, phone } = req.body;
+    const userId = req.body.userId;
+    
+    // Check if email is being changed and if it's already taken
+    if (email) {
+      const existingUser = await userModel.findOne({ 
+        email: email, 
+        _id: { $ne: userId } 
+      });
+      
+      if (existingUser) {
+        return res.json({ 
+          success: false, 
+          message: "Email is already taken by another user" 
+        });
+      }
+    }
+    
+    // Validate email format if provided
+    if (email && !validator.isEmail(email)) {
+      return res.json({ success: false, message: "Please enter valid email" });
+    }
+    
+    // Prepare update data
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (email) updateData.email = email;
+    if (restaurantName) updateData.restaurantName = restaurantName;
+    if (restaurantAddress) updateData.restaurantAddress = restaurantAddress;
+    if (phone) updateData.phone = phone;
+    
+    const updatedUser = await userModel.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password');
+    
+    if (!updatedUser) {
+      return res.json({ success: false, message: "User not found" });
+    }
+    
+    res.json({ 
+      success: true, 
+      message: "Profile updated successfully",
+      data: updatedUser
+    });
+  } catch (error) {
+    console.log("Error updating profile:", error);
+    res.json({ success: false, message: "Error updating profile" });
+  }
+};
+
+export { loginUser, registerUser, getUserProfile, updateUserProfile };

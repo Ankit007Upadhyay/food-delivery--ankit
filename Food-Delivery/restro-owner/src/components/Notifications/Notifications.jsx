@@ -38,11 +38,29 @@ const Notifications = () => {
           
           // Show toast for each new notification
           newUnreadNotifications.forEach(notif => {
-            if (notif.type === 'order_placed') {
+            if (notif.type === 'order_placed' || notif.type === 'order_pending_acceptance') {
               playNotificationSound(); // Play sound for new orders
               toast.success(`🍔 New Order: ${notif.message}`, {
                 position: "top-right",
                 autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+              });
+            } else if (notif.type === 'order_accepted') {
+              toast.success(`✅ Order Accepted: ${notif.message}`, {
+                position: "top-right",
+                autoClose: 4000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+              });
+            } else if (notif.type === 'order_rejected') {
+              toast.error(`❌ Order Rejected: ${notif.message}`, {
+                position: "top-right",
+                autoClose: 4000,
                 hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
@@ -101,13 +119,56 @@ const Notifications = () => {
 
   const markAllAsRead = async () => {
     try {
+      console.log("=== Marking all notifications as read ===");
+      console.log("Current showNotifications state:", showNotifications);
+      
+      // Close immediately to prevent any interference
+      setShowNotifications(false);
+      console.log("Pre-emptive close called");
+      
+      // Prevent any immediate clicks from reopening
+      const preventReopen = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        console.log("Prevented reopen event");
+      };
+      
+      // Add temporary event listener to prevent reopening
+      const header = document.querySelector('.notifications-header');
+      if (header) {
+        header.addEventListener('click', preventReopen, { once: true });
+        console.log("Added temporary prevent reopen listener");
+      }
+      
       const response = await axios.post(url + "/api/notification/mark-all-read", {}, {
         headers: { token }
       });
+      
       if (response.data.success) {
+        console.log("✅ API call successful");
         setNotifications(notifications.map(notif => ({ ...notif, isRead: true })));
         setUnreadCount(0);
         toast.success("All notifications marked as read");
+        
+        // Ensure it stays closed
+        setShowNotifications(false);
+        console.log("Post-API close called");
+        
+        // Multiple force closes to ensure it stays closed
+        setTimeout(() => {
+          setShowNotifications(false);
+          console.log("Force close 1 called");
+        }, 50);
+        
+        setTimeout(() => {
+          setShowNotifications(false);
+          console.log("Force close 2 called");
+        }, 200);
+        
+        setTimeout(() => {
+          setShowNotifications(false);
+          console.log("Force close 3 called");
+        }, 500);
       }
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
@@ -136,16 +197,26 @@ const Notifications = () => {
 
   const getNotificationIcon = (type) => {
     switch (type) {
-      case "order_placed":
-        return "📦";
-      case "order_status":
-        return "🔄";
-      case "order_delivered":
-        return "✅";
-      case "payment_received":
-        return "💰";
+      case 'order_placed':
+        return '🍽️';
+      case 'order_pending_acceptance':
+        return '⏰';
+      case 'order_accepted':
+        return '✅';
+      case 'order_rejected':
+        return '❌';
+      case 'order_status':
+        return '�';
+      case 'order_delivered':
+        return '🚚';
+      case 'payment_received':
+        return '💰';
+      case 'status_update':
+        return '🔄';
+      case 'order_cancelled':
+        return '�';
       default:
-        return "🔔";
+        return '�';
     }
   };
 
@@ -205,14 +276,18 @@ const Notifications = () => {
       {showNotifications && (
         <div className="notifications-dropdown">
           <div className="notifications-actions">
-            <button onClick={() => {
+            <button onClick={(e) => {
+              e.stopPropagation();
               fetchNotifications();
               fetchUnreadCount();
               toast.success("Notifications refreshed");
             }} className="refresh-notifications-btn">
               🔄 Refresh
             </button>
-            <button onClick={markAllAsRead} className="mark-all-read-btn">
+            <button onClick={(e) => {
+              e.stopPropagation();
+              markAllAsRead();
+            }} className="mark-all-read-btn">
               Mark all as read
             </button>
           </div>
