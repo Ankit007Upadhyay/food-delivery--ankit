@@ -13,7 +13,7 @@ import { StoreContext } from "./context/StoreContext";
 import "./App.css";
 
 const App = () => {
-  const url = "http://localhost:4000";
+  const url = "https://food-delivery-ankit-backend.onrender.com";
   const { token } = useContext(StoreContext);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
