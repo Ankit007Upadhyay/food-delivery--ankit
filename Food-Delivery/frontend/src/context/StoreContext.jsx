@@ -9,6 +9,8 @@ const StoreContextProvider = (props) => {
   const url = "http://localhost:4000";
   const [token, setToken] = useState("");
   const [food_list, setFoodList] = useState([]);
+  const [user, setUser] = useState(null);
+  const [totalOrders, setTotalOrders] = useState(0);
 
   const addToCart = async (itemId) => {
     if (!cartItems[itemId]) {
@@ -84,16 +86,55 @@ const StoreContextProvider = (props) => {
     setCartItems(response.data.cartData);
   };
 
+  const fetchUserData = async (token) => {
+    try {
+      const response = await axios.post(url + "/api/user/profile", {}, {
+        headers: { token }
+      });
+      if (response.data.success) {
+        setUser(response.data.data);
+      }
+    } catch (error) {
+      console.log("Error fetching user data:", error);
+    }
+  };
+
+  const fetchTotalOrders = async (token) => {
+    try {
+      const response = await axios.post(url + "/api/order/userorders", {}, {
+        headers: { token }
+      });
+      if (response.data.success && response.data.orders) {
+        setTotalOrders(response.data.orders.length);
+      }
+    } catch (error) {
+      console.log("Error fetching orders:", error);
+    }
+  };
+
   useEffect(() => {
     async function loadData() {
       await fetchFoodList();
       if (localStorage.getItem("token")) {
         setToken(localStorage.getItem("token"));
         await loadCardData(localStorage.getItem("token"));
+        await fetchUserData(localStorage.getItem("token"));
+        await fetchTotalOrders(localStorage.getItem("token"));
       }
     }
     loadData();
   }, []);
+
+  // Fetch user data when token changes
+  useEffect(() => {
+    if (token) {
+      fetchUserData(token);
+      fetchTotalOrders(token);
+    } else {
+      setUser(null);
+      setTotalOrders(0);
+    }
+  }, [token]);
 
   const contextValue = {
     food_list,
@@ -105,6 +146,8 @@ const StoreContextProvider = (props) => {
     url,
     token,
     setToken,
+    user,
+    totalOrders,
   };
   return (
     <StoreContext.Provider value={contextValue}>

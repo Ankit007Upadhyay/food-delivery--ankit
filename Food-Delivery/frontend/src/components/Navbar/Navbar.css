@@ -303,6 +303,44 @@
   transform: translateX(4px);
 }
 
+.profile-dropdown li.profile-info-section {
+  cursor: default;
+  padding: 16px 12px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(59, 130, 246, 0.05));
+  border-radius: var(--border-radius-md);
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.profile-dropdown li.profile-info-section:hover {
+  transform: none;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(59, 130, 246, 0.05));
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-name {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.profile-email {
+  font-size: 12px;
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+
+.profile-orders {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
 .profile-dropdown img {
   width: 20px;
   height: 20px;

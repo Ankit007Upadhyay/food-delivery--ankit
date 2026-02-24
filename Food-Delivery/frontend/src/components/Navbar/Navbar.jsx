@@ -10,7 +10,7 @@ const Navbar = ({ setShowLogin }) => {
   const [menu, setMenu] = useState("home");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { getTotalCartAmount, token, setToken } = useContext(StoreContext);
+  const { getTotalCartAmount, token, setToken, user, totalOrders } = useContext(StoreContext);
   const navigate = useNavigate();
 
   // Format price for cart badge
@@ -128,6 +128,16 @@ const Navbar = ({ setShowLogin }) => {
                 <span className="profile-arrow">▼</span>
               </div>
               <ul className="profile-dropdown">
+                {user && (
+                  <li className="profile-info-section">
+                    <div className="profile-info">
+                      <div className="profile-name">👤 {user.name}</div>
+                      <div className="profile-email">✉️ {user.email}</div>
+                      <div className="profile-orders">📦 Total Orders: {totalOrders}</div>
+                    </div>
+                  </li>
+                )}
+                <hr />
                 <li onClick={() => { navigate("/myorders"); setIsMobileMenuOpen(false); }}>
                   <img src={assets.bag_icon} alt="Orders" />
                   <span>My Orders</span>
