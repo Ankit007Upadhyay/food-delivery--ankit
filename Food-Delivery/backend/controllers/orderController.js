@@ -570,6 +570,87 @@ const autoRemoveDeliveredOrders = async () => {
   }
 };
 
+// Update order status with delivery boy number
+const updateOrderWithDeliveryBoy = async (req, res) => {
+  try {
+    const { orderId, status, deliveryBoyNumber } = req.body;
+    const restaurantOwnerId = req.body.userId;
+    
+    console.log("=== Updating order with delivery boy ===");
+    console.log("Order ID:", orderId);
+    console.log("Status:", status);
+    console.log("Delivery Boy Number:", deliveryBoyNumber);
+    console.log("Restaurant Owner ID:", restaurantOwnerId);
+    
+    // Get the order
+    const order = await orderModel.findById(orderId).populate('userId', 'name email');
+    
+    if (!order) {
+      return res.json({ success: false, message: "Order not found" });
+    }
+    
+    // Check if order belongs to this restaurant owner
+    if (!order.restaurantOwners.includes(restaurantOwnerId)) {
+      return res.json({ success: false, message: "This order is not yours" });
+    }
+    
+    // Validate status transition
+    const validStatuses = ["Food Processing", "Out for delivery", "Delivered"];
+    if (!validStatuses.includes(status)) {
+      return res.json({ success: false, message: "Invalid status" });
+    }
+    
+    // If status is "Out for delivery", delivery boy number is required
+    if (status === "Out for delivery" && !deliveryBoyNumber) {
+      return res.json({ success: false, message: "Delivery boy number is required when order is out for delivery" });
+    }
+    
+    // Update order status and delivery boy number
+    order.status = status;
+    if (deliveryBoyNumber) {
+      order.deliveryBoyNumber = deliveryBoyNumber;
+    }
+    await order.save();
+    
+    console.log("✅ Order updated successfully");
+    
+    // Create notification for customer
+    let notificationTitle, notificationMessage, notificationType;
+    
+    if (status === "Food Processing") {
+      notificationTitle = "Order in Progress!";
+      notificationMessage = `Your order is now being prepared by the restaurant.`;
+      notificationType = "status_update";
+    } else if (status === "Out for delivery") {
+      notificationTitle = "Order Out for Delivery! 🚚";
+      notificationMessage = `Your order is out for delivery! Delivery boy contact: ${deliveryBoyNumber}`;
+      notificationType = "status_update";
+    } else if (status === "Delivered") {
+      notificationTitle = "Order Delivered! ✅";
+      notificationMessage = `Your order has been successfully delivered. Enjoy your meal!`;
+      notificationType = "order_delivered";
+    }
+    
+    await createNotification(
+      order.userId,
+      notificationTitle,
+      notificationMessage,
+      notificationType,
+      orderId
+    );
+    
+    res.json({ 
+      success: true, 
+      message: `Order status updated to ${status} successfully!`,
+      deliveryBoyNumber: order.deliveryBoyNumber
+    });
+    
+  } catch (error) {
+    console.log("Error updating order with delivery boy:", error);
+    res.json({ success: false, message: "Error updating order" });
+  }
+};
+
 export { 
   placeOrder, 
   verifyOrder, 
@@ -582,5 +663,6 @@ export {
   rejectOrder,
   cancelOrder,
   removeDeliveredOrders, 
-  autoRemoveDeliveredOrders 
+  autoRemoveDeliveredOrders,
+  updateOrderWithDeliveryBoy
 };

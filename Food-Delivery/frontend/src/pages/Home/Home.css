@@ -1,0 +1,243 @@
+/* Modern Home Page Styles */
+.modern-home {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.8s ease;
+}
+
+.modern-home.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Container */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Hero Section */
+.hero-section {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,133.3C960,128,1056,96,1152,90.7C1248,85,1344,107,1392,117.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+  background-size: cover;
+}
+
+/* Explore Section */
+.explore-section {
+  padding: 80px 0;
+  background: white;
+  position: relative;
+}
+
+.explore-section::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: white;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+}
+
+/* Food Display Section */
+.food-display-section {
+  padding: 60px 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  position: relative;
+}
+
+.food-display-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--primary-gradient);
+}
+
+/* App Download Section */
+.app-download-section {
+  padding: 80px 0;
+  background: white;
+  position: relative;
+}
+
+.app-download-section::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: white;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+}
+
+/* Section Animations */
+.hero-section {
+  animation: slideInUp 1s ease forwards;
+}
+
+.explore-section {
+  animation: fadeIn 1s ease 0.3s forwards;
+  opacity: 0;
+}
+
+.food-display-section {
+  animation: fadeIn 1s ease 0.6s forwards;
+  opacity: 0;
+}
+
+.app-download-section {
+  animation: fadeIn 1s ease 0.9s forwards;
+  opacity: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .container {
+    padding: 0 16px;
+  }
+  
+  .explore-section,
+  .food-display-section,
+  .app-download-section {
+    padding: 60px 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 12px;
+  }
+  
+  .hero-section {
+    min-height: 80vh;
+  }
+  
+  .explore-section,
+  .food-display-section,
+  .app-download-section {
+    padding: 40px 0;
+  }
+  
+  .explore-section::before,
+  .app-download-section::before {
+    top: -30px;
+    height: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 8px;
+  }
+  
+  .hero-section {
+    min-height: 70vh;
+  }
+  
+  .explore-section,
+  .food-display-section,
+  .app-download-section {
+    padding: 30px 0;
+  }
+  
+  .explore-section::before,
+  .app-download-section::before {
+    top: -20px;
+    height: 40px;
+  }
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Loading State */
+.modern-home:not(.loaded) {
+  overflow: hidden;
+}
+
+.modern-home:not(.loaded) * {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* Performance Optimizations */
+.hero-section,
+.explore-section,
+.food-display-section,
+.app-download-section {
+  will-change: transform, opacity;
+  contain: layout style paint;
+}
+
+/* Print Styles */
+@media print {
+  .modern-home {
+    background: white;
+  }
+  
+  .hero-section {
+    background: white;
+    min-height: auto;
+  }
+  
+  .hero-section::before {
+    display: none;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .modern-home {
+    background: white;
+  }
+  
+  .hero-section {
+    background: #0000ff;
+  }
+  
+  .food-display-section {
+    background: #f0f0f0;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .modern-home,
+  .hero-section,
+  .explore-section,
+  .food-display-section,
+  .app-download-section {
+    animation: none;
+    transition: none;
+  }
+  
+  html {
+    scroll-behavior: auto;
+  }
+}

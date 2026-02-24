@@ -425,6 +425,68 @@
   animation: slideIn 0.5s ease forwards;
 }
 
+/* Delivery Boy Input Styles */
+.delivery-boy-input {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.delivery-boy-input label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.delivery-boy-number-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.delivery-boy-number-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.delivery-boy-number-input::placeholder {
+  color: #9ca3af;
+}
+
+.delivery-boy-info {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.delivery-boy-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #059669;
+}
+
+.delivery-boy-number {
+  font-size: 14px;
+  font-weight: 600;
+  color: #047857;
+  background: #d1fae5;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .orders-header {

@@ -10,6 +10,7 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [deliveryBoyNumbers, setDeliveryBoyNumbers] = useState({});
 
   const fetchOrders = async () => {
     try {
@@ -57,6 +58,43 @@ const Orders = () => {
       console.error("Error updating order status:", error);
       toast.error("Error updating order status");
     }
+  };
+
+  const updateOrderWithDeliveryBoy = async (orderId, newStatus) => {
+    const deliveryBoyNumber = deliveryBoyNumbers[orderId] || "";
+    
+    // Validate delivery boy number for "Out for delivery" status
+    if (newStatus === "Out for delivery" && !deliveryBoyNumber.trim()) {
+      toast.error("Delivery boy number is required when order is out for delivery");
+      return;
+    }
+
+    try {
+      const response = await axios.post(url + "/api/order/update-with-delivery-boy", {
+        orderId,
+        status: newStatus,
+        deliveryBoyNumber: deliveryBoyNumber.trim(),
+        userId: localStorage.getItem("userId")
+      }, {
+        headers: { token }
+      });
+
+      if (response.data.success) {
+        toast.success(`Order status updated to ${newStatus} successfully!`);
+        // Clear the delivery boy number input after successful update
+        setDeliveryBoyNumbers(prev => ({ ...prev, [orderId]: "" }));
+        fetchOrders();
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error updating order with delivery boy:", error);
+      toast.error("Error updating order");
+    }
+  };
+
+  const handleDeliveryBoyChange = (orderId, value) => {
+    setDeliveryBoyNumbers(prev => ({ ...prev, [orderId]: value }));
   };
 
   const acceptOrder = async (orderId) => {
@@ -153,14 +191,14 @@ const Orders = () => {
           <div className="spinner"></div>
           <p>Loading orders...</p>
         </div>
-      ) : orders.filter(order => order.status !== "cancelled").length === 0 ? (
+      ) : orders.filter(order => order.status !== "cancelled" && order.status !== "Delivered").length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">📭</div>
           <h3>No active orders</h3>
           <p>When customers place orders, they will appear here</p>
-          {orders.filter(order => order.status === "cancelled").length > 0 && (
+          {(orders.filter(order => order.status === "cancelled").length > 0 || orders.filter(order => order.status === "Delivered").length > 0) && (
             <p style={{fontSize: '14px', color: '#999', marginTop: '10px'}}>
-              You have {orders.filter(order => order.status === "cancelled").length} cancelled order(s)
+              You have {orders.filter(order => order.status === "cancelled").length} cancelled and {orders.filter(order => order.status === "Delivered").length} delivered order(s) completed
             </p>
           )}
           <button className="modern-btn" onClick={handleRefresh}>
@@ -169,7 +207,7 @@ const Orders = () => {
         </div>
       ) : (
         <div className="orders-grid">
-          {orders.filter(order => order.status !== "cancelled").map((order, index) => (
+          {orders.filter(order => order.status !== "cancelled" && order.status !== "Delivered").map((order, index) => (
             <div key={order._id} className="order-card slide-in" style={{ animationDelay: `${index * 0.1}s` }}>
               <div className="order-header">
                 <div className="order-info">
@@ -242,13 +280,35 @@ const Orders = () => {
                     <label>Update Status:</label>
                     <select 
                       className="status-select"
-                      onChange={(e) => updateOrderStatus(order._id, e.target.value)}
+                      onChange={(e) => updateOrderWithDeliveryBoy(order._id, e.target.value)}
                       value={order.status}
                     >
                       <option value="Food Processing">👨‍🍳 Food Processing</option>
                       <option value="Out for delivery">🚚 Out for Delivery</option>
                       <option value="Delivered">✅ Delivered</option>
                     </select>
+                    
+                    {/* Show delivery boy input when "Out for delivery" is selected */}
+                    {order.status === "Food Processing" && (
+                      <div className="delivery-boy-input">
+                        <label>Delivery Boy Number (required for delivery):</label>
+                        <input
+                          type="tel"
+                          placeholder="Enter delivery boy mobile number"
+                          value={deliveryBoyNumbers[order._id] || ""}
+                          onChange={(e) => handleDeliveryBoyChange(order._id, e.target.value)}
+                          className="delivery-boy-number-input"
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Show existing delivery boy number if order is out for delivery */}
+                    {order.status === "Out for delivery" && order.deliveryBoyNumber && (
+                      <div className="delivery-boy-info">
+                        <span className="delivery-boy-label">📞 Delivery Boy:</span>
+                        <span className="delivery-boy-number">{order.deliveryBoyNumber}</span>
+                      </div>
+                    )}
                   </div>
                 )}
 

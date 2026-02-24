@@ -18,6 +18,9 @@ const orderSchema = new mongoose.Schema({
   paymentStatus: { type: String, default: "pending" },
   status: { type: String, default: "pending_acceptance" }, // "pending_acceptance", "Food Processing", "Out for delivery", "Delivered", "rejected"
   restaurantOwners: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }], // Single restaurant owner
+  deliveryBoyNumber: { type: String, default: "" }, // Delivery boy contact number
+  cancellationReason: { type: String },
+  cancelledAt: { type: Date },
 },
 { minimize: false, timestamps: true }
 );

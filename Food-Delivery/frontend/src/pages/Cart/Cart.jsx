@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import "./Cart.css";
 import { StoreContext } from "../../context/StoreContext";
 import { useNavigate } from "react-router-dom";
@@ -14,72 +14,172 @@ const Cart = () => {
     url
   } = useContext(StoreContext);
 
-  const navigate=useNavigate();
+  const [promoCode, setPromoCode] = useState("");
+  const [promoApplied, setPromoApplied] = useState(false);
+  const navigate = useNavigate();
+
+  const handlePromoSubmit = (e) => {
+    e.preventDefault();
+    if (promoCode.trim()) {
+      setPromoApplied(true);
+      // Handle promo code logic here
+    }
+  };
+
+  const handleQuantityChange = (itemId, newQuantity) => {
+    if (newQuantity === 0) {
+      removeFromCart(itemId);
+    } else if (newQuantity > cartItems[itemId]) {
+      addToCart(itemId);
+    } else {
+      // Decrease quantity
+      const newCartItems = { ...cartItems };
+      newCartItems[itemId] = newQuantity;
+      setCartItems(newCartItems);
+    }
+  };
+
+  const subtotal = getTotalCartAmount();
+  const deliveryFee = subtotal === 0 ? 0 : 2;
+  const total = subtotal + deliveryFee;
 
   return (
-    <div className="cart">
-      <div className="cart-items">
-        <div className="cart-items-title">
-          <p>Items</p>
-          <p>Title</p>
-          <p>Price</p>
-          <p>Quantity</p>
-          <p>Total</p>
-          <p>Remove</p>
+    <div className="modern-cart">
+      <div className="cart-header">
+        <h1 className="cart-title">🛒 Shopping Cart</h1>
+        <p className="cart-subtitle">
+          {Object.values(cartItems).reduce((sum, qty) => sum + qty, 0)} items in your cart
+        </p>
+      </div>
+
+      {Object.values(cartItems).every(qty => qty === 0) ? (
+        <div className="empty-cart">
+          <div className="empty-cart-icon">🛒</div>
+          <h2>Your cart is empty</h2>
+          <p>Add some delicious food to get started!</p>
+          <button onClick={() => navigate('/')} className="continue-shopping-btn">
+            Continue Shopping
+          </button>
         </div>
-        <br />
-        <hr />
-        {food_list.map((item, index) => {
-          if (cartItems[item._id] > 0) {
-            return (
-              <div>
-                <div className="cart-items-title cart-items-item">
-                  <img src={url+"/images/"+item.image} alt="" />
-                  <p>{item.name}</p>
-                  <p>${item.price}</p>
-                  <p>{cartItems[item._id]}</p>
-                  <p>${item.price * cartItems[item._id]}</p>
-                  <p onClick={() => removeFromCart(item._id)} className="cross">
-                    x
-                  </p>
-                </div>
-                <hr />
+      ) : (
+        <div className="cart-content">
+          <div className="cart-items-section">
+            <div className="cart-items-header">
+              <div className="header-item">Product</div>
+              <div className="header-item">Name</div>
+              <div className="header-item">Price</div>
+              <div className="header-item">Quantity</div>
+              <div className="header-item">Total</div>
+              <div className="header-item">Remove</div>
+            </div>
+
+            <div className="cart-items-list">
+              {food_list.map((item, index) => {
+                if (cartItems[item._id] > 0) {
+                  return (
+                    <div key={item._id} className="cart-item">
+                      <div className="item-image">
+                        <img src={url + "/images/" + item.image} alt={item.name} />
+                      </div>
+                      <div className="item-details">
+                        <h3 className="item-name">{item.name}</h3>
+                        <p className="item-description">Fresh and delicious</p>
+                      </div>
+                      <div className="item-price">${item.price}</div>
+                      <div className="item-quantity">
+                        <div className="quantity-controls">
+                          <button 
+                            onClick={() => handleQuantityChange(item._id, cartItems[item._id] - 1)}
+                            className="quantity-btn decrease"
+                          >
+                            −
+                          </button>
+                          <span className="quantity-value">{cartItems[item._id]}</span>
+                          <button 
+                            onClick={() => handleQuantityChange(item._id, cartItems[item._id] + 1)}
+                            className="quantity-btn increase"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                      <div className="item-total">
+                        ${(item.price * cartItems[item._id]).toFixed(2)}
+                      </div>
+                      <div className="item-remove">
+                        <button 
+                          onClick={() => removeFromCart(item._id)}
+                          className="remove-btn"
+                          aria-label="Remove item"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })}
+            </div>
+          </div>
+
+          <div className="cart-sidebar">
+            <div className="cart-summary">
+              <h2 className="summary-title">Order Summary</h2>
+              
+              <div className="summary-row">
+                <span>Subtotal</span>
+                <span>${subtotal.toFixed(2)}</span>
               </div>
-            );
-          }
-        })}
-      </div>
-      <div className="cart-bottom">
-        <div className="cart-total">
-          <h2>Cart Totals</h2>
-          <div>
-            <div className="cart-total-details">
-              <p>Subtotals</p>
-              <p>${getTotalCartAmount()}</p>
+              
+              <div className="summary-row">
+                <span>Delivery Fee</span>
+                <span>${deliveryFee.toFixed(2)}</span>
+              </div>
+              
+              <div className="summary-row discount-row">
+                <span>Discount</span>
+                <span className="discount-amount">
+                  {promoApplied ? "-$5.00" : "$0.00"}
+                </span>
+              </div>
+              
+              <div className="summary-row total-row">
+                <span>Total</span>
+                <span className="total-amount">
+                  ${(total - (promoApplied ? 5 : 0)).toFixed(2)}
+                </span>
+              </div>
+
+              <button 
+                onClick={() => navigate('/order')}
+                className="checkout-btn"
+              >
+                Proceed to Checkout
+              </button>
             </div>
-            <hr />
-            <div className="cart-total-details">
-              <p>Delivery Fee</p>
-              <p>${getTotalCartAmount()===0?0:2}</p>
-            </div>
-            <hr />
-            <div className="cart-total-details">
-              <b>Total</b>
-              <b>${getTotalCartAmount()===0?0:getTotalCartAmount()+2}</b>
+
+            <div className="promo-section">
+              <h3 className="promo-title">Have a promo code?</h3>
+              <form onSubmit={handlePromoSubmit} className="promo-form">
+                <input
+                  type="text"
+                  placeholder="Enter promo code"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  className="promo-input"
+                />
+                <button type="submit" className="promo-btn">
+                  Apply
+                </button>
+              </form>
+              {promoApplied && (
+                <p className="promo-success">✅ Promo code applied successfully!</p>
+              )}
             </div>
           </div>
-          <button onClick={()=>navigate('/order')}>PROCEED TO CHECKOUT</button>
         </div>
-        <div className="cart-promocode">
-          <div>
-            <p>If you have a promocode, Enter it here</p>
-            <div className="cart-promocode-input">
-              <input type="text" placeholder="promo code" />
-              <button>Submit</button>
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

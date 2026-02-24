@@ -6,19 +6,21 @@
 .notifications-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 15px;
-  background-color: #fff;
-  border-radius: 8px;
+  justify-content: center;
+  padding: 8px;
+  background-color: rgba(102, 126, 234, 0.1);
+  border-radius: var(--border-radius-md);
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid #e0e0e0;
+  border: 1px solid transparent;
+  min-width: 40px;
+  height: 40px;
 }
 
 .notifications-header:hover {
-  background-color: #f8f8f8;
+  background-color: rgba(102, 126, 234, 0.2);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
 }
 
 .notifications-icon {

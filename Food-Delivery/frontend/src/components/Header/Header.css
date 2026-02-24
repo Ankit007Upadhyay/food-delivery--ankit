@@ -1,52 +1,180 @@
-.header{
-    height: 34vw;
-    margin: 30px auto;
-    background: url('/header_img.png') no-repeat;
-    background-size: contain;
-    position: relative;
+/* Modern Header Styles */
+.modern-header {
+  position: relative;
+  width: 100%;
+  height: 80vh;
+  min-height: 500px;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 0 0 var(--border-radius-xl) var(--border-radius-xl);
 }
-.header-contents{
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    align-items: start;
-    gap: 1.5vw;
-    max-width: 50%;
-    bottom: 10%;
-    left: 6vw;
-    animation: fadeIn 3s;
+
+.header-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
-.header-contents h2{
-    font-weight: 500;
-    color: white;
-    font-size: max(4.5vw,22px);
+
+.header-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
-.header-contents p{
-    color: white;
-    font-size: 1vw;
+
+.header-background::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.2);
 }
-.header-contents button{
-    border: none;
-    color: #747474;
-    font-weight: 500;
-    padding: 1vw 2.3vw;
-    background-color: white;
-    font-size: max(1vw,13px);
-    border-radius: 50px;
+
+.header-contents {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+  padding: 0 8%;
 }
-@media (max-width:1050px) {
-    .header-contents{
-        max-width: 45%;
-    }
+
+.header-content-wrapper {
+  max-width: 600px;
+  animation: slideInUp 1s ease;
 }
-@media (max-width:750px) {
-    .header-contents{
-        max-width: 65%;
-    }
-    .header-contents p{
-        display: none;
-    }
-    .header-contents button{
-        padding: 2vw 4vw;
-    }
+
+.header-content-wrapper h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  color: white;
+  margin-bottom: 24px;
+  line-height: 1.2;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.header-content-wrapper p {
+  font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 32px;
+  line-height: 1.6;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.modern-header-btn {
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  font-size: clamp(0.9rem, 1.2vw, 1rem);
+  font-weight: 600;
+  border-radius: var(--border-radius-lg);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modern-header-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.modern-header-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .modern-header {
+    height: 70vh;
+    min-height: 450px;
+  }
+  
+  .header-contents {
+    padding: 0 6%;
+  }
+  
+  .header-content-wrapper {
+    max-width: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .modern-header {
+    height: 60vh;
+    min-height: 400px;
+  }
+  
+  .header-contents {
+    padding: 0 4%;
+    align-items: flex-end;
+    padding-bottom: 60px;
+  }
+  
+  .header-content-wrapper {
+    max-width: 90%;
+  }
+  
+  .header-content-wrapper h1 {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    margin-bottom: 16px;
+  }
+  
+  .header-content-wrapper p {
+    font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+    margin-bottom: 24px;
+  }
+  
+  .modern-header-btn {
+    padding: 14px 28px;
+    font-size: clamp(0.8rem, 1vw, 0.9rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .modern-header {
+    height: 50vh;
+    min-height: 350px;
+  }
+  
+  .header-contents {
+    padding: 0 3%;
+    padding-bottom: 40px;
+  }
+  
+  .header-content-wrapper {
+    max-width: 95%;
+    text-align: center;
+  }
+  
+  .header-content-wrapper h1 {
+    font-size: clamp(1.2rem, 3.5vw, 2rem);
+    margin-bottom: 12px;
+  }
+  
+  .header-content-wrapper p {
+    font-size: clamp(0.7rem, 1vw, 0.8rem);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+  
+  .modern-header-btn {
+    padding: 12px 24px;
+    font-size: clamp(0.7rem, 0.9vw, 0.8rem);
+  }
+}
+
+/* Fallback for old header class */
+.header {
+  display: none;
 }

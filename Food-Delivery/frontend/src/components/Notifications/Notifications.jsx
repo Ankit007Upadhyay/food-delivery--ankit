@@ -56,13 +56,56 @@ const Notifications = () => {
 
   const markAllAsRead = async () => {
     try {
+      console.log("=== Customer marking all notifications as read ===");
+      console.log("Current showNotifications state:", showNotifications);
+      
+      // Close immediately to prevent any interference
+      setShowNotifications(false);
+      console.log("Pre-emptive close called");
+      
+      // Prevent any immediate clicks from reopening
+      const preventReopen = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        console.log("Customer prevented reopen event");
+      };
+      
+      // Add temporary event listener to prevent reopening
+      const header = document.querySelector('.notifications-header');
+      if (header) {
+        header.addEventListener('click', preventReopen, { once: true });
+        console.log("Added temporary prevent reopen listener");
+      }
+      
       const response = await axios.post(url + "/api/notification/mark-all-read", {}, {
         headers: { token }
       });
+      
       if (response.data.success) {
+        console.log("✅ Customer API call successful");
         setNotifications(notifications.map(notif => ({ ...notif, isRead: true })));
         setUnreadCount(0);
         toast.success("All notifications marked as read");
+        
+        // Ensure it stays closed
+        setShowNotifications(false);
+        console.log("Post-API close called");
+        
+        // Multiple force closes to ensure it stays closed
+        setTimeout(() => {
+          setShowNotifications(false);
+          console.log("Customer force close 1 called");
+        }, 50);
+        
+        setTimeout(() => {
+          setShowNotifications(false);
+          console.log("Customer force close 2 called");
+        }, 200);
+        
+        setTimeout(() => {
+          setShowNotifications(false);
+          console.log("Customer force close 3 called");
+        }, 500);
       }
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
@@ -139,13 +182,15 @@ const Notifications = () => {
           🔔
           {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
         </div>
-        <span>Notifications</span>
       </div>
 
       {showNotifications && (
         <div className="notifications-dropdown">
           <div className="notifications-actions">
-            <button onClick={markAllAsRead} className="mark-all-read-btn">
+            <button onClick={(e) => {
+              e.stopPropagation();
+              markAllAsRead();
+            }} className="mark-all-read-btn">
               Mark all as read
             </button>
           </div>

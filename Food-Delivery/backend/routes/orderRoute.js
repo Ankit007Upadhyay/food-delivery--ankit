@@ -1,6 +1,6 @@
 import express from "express";
 import authMiddleware from "../middleware/auth.js";
-import { listOrders, placeOrder, updateStatus, userOrders, verifyOrder, getRestroOwnerOrders, updateRestroOrderStatus, removeDeliveredOrders, acceptOrder, rejectOrder, cancelOrder } from "../controllers/orderController.js";
+import { listOrders, placeOrder, updateStatus, userOrders, verifyOrder, getRestroOwnerOrders, updateRestroOrderStatus, removeDeliveredOrders, acceptOrder, rejectOrder, cancelOrder, updateOrderWithDeliveryBoy } from "../controllers/orderController.js";
 
 const orderRouter = express.Router();
 
@@ -15,5 +15,6 @@ orderRouter.post("/accept-order",authMiddleware,acceptOrder);
 orderRouter.post("/reject-order",authMiddleware,rejectOrder);
 orderRouter.post("/cancel-order",authMiddleware,cancelOrder);
 orderRouter.post("/remove-delivered",authMiddleware,removeDeliveredOrders);
+orderRouter.post("/update-with-delivery-boy",authMiddleware,updateOrderWithDeliveryBoy);
 
 export default orderRouter;

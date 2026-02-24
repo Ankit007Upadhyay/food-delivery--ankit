@@ -19,6 +19,49 @@ body {
 .app-main {
   display: flex;
   min-height: calc(100vh - 70px);
+  position: relative;
+}
+
+/* Mobile Sidebar System */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+.mobile-sidebar {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  z-index: 1000;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(180deg, #1e293b 0%, #334155 100%);
+}
+
+.mobile-sidebar.open {
+  display: block;
+  transform: translateX(0);
+}
+
+.desktop-sidebar {
+  display: block;
 }
 
 .content-area {
@@ -182,10 +225,45 @@ body {
   animation: spin 1s linear infinite;
 }
 
-/* Responsive design */
+/* Mobile Responsive Design */
+@media (max-width: 1024px) {
+  .content-area {
+    padding: 20px;
+  }
+}
+
 @media (max-width: 768px) {
+  .app {
+    overflow-x: hidden;
+  }
+  
+  .app-main {
+    flex-direction: column;
+    min-height: calc(100vh - 60px);
+  }
+  
+  .sidebar-overlay {
+    display: block;
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  .sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+  
+  .mobile-sidebar {
+    display: block;
+  }
+  
+  .desktop-sidebar {
+    display: none;
+  }
+  
   .content-area {
     padding: 16px;
+    margin-left: 0;
   }
   
   .modern-btn {
@@ -195,5 +273,87 @@ body {
   
   .modern-input {
     padding: 10px 12px;
+  }
+  
+  .modern-card {
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .modern-table {
+    font-size: 12px;
+  }
+  
+  .modern-table th,
+  .modern-table td {
+    padding: 12px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-sidebar {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .content-area {
+    padding: 12px;
+  }
+  
+  .modern-btn {
+    padding: 8px 12px;
+    font-size: 11px;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .modern-input {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+  
+  .modern-card {
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  
+  .modern-table {
+    font-size: 11px;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  
+  .modern-table th,
+  .modern-table td {
+    padding: 8px 6px;
+  }
+  
+  /* Hide some table columns on very small screens */
+  .modern-table th:nth-child(3),
+  .modern-table td:nth-child(3) {
+    display: none;
+  }
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 360px) {
+  .mobile-sidebar {
+    width: 100%;
+    max-width: 280px;
+  }
+  
+  .content-area {
+    padding: 8px;
+  }
+  
+  .modern-card {
+    padding: 12px;
+  }
+  
+  .modern-btn {
+    padding: 6px 10px;
+    font-size: 10px;
   }
 }

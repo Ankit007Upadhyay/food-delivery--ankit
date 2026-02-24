@@ -3,16 +3,19 @@ import './Sidebar.css'
 import { assets } from '../../assets/assets'
 import { NavLink } from 'react-router-dom'
 
-const Sidebar = () => {
+const Sidebar = ({ toggleSidebar }) => {
   return (
     <div className="sidebar">
       <div className="sidebar-brand">
         <img src={assets.newlogo} alt="Logo" className="brand-logo" />
         <h2>Restaurant Panel</h2>
+        <button className="sidebar-close-btn" onClick={toggleSidebar}>
+          ✕
+        </button>
       </div>
       
       <nav className="sidebar-nav">
-        <NavLink to='add' className="sidebar-option">
+        <NavLink to='add' className="sidebar-option" onClick={toggleSidebar}>
           <div className="option-icon">
             <img src={assets.add_icon} alt="Add" />
           </div>
@@ -23,7 +26,7 @@ const Sidebar = () => {
           <div className="option-arrow">→</div>
         </NavLink>
         
-        <NavLink to='list' className="sidebar-option">
+        <NavLink to='list' className="sidebar-option" onClick={toggleSidebar}>
           <div className="option-icon">
             <img src={assets.order_icon} alt="List" />
           </div>
@@ -34,7 +37,7 @@ const Sidebar = () => {
           <div className="option-arrow">→</div>
         </NavLink>
         
-        <NavLink to='orders' className="sidebar-option">
+        <NavLink to='orders' className="sidebar-option" onClick={toggleSidebar}>
           <div className="option-icon">
             <img src={assets.order_icon} alt="Orders" />
           </div>
@@ -45,7 +48,7 @@ const Sidebar = () => {
           <div className="option-arrow">→</div>
         </NavLink>
         
-        <NavLink to='profile' className="sidebar-option">
+        <NavLink to='profile' className="sidebar-option" onClick={toggleSidebar}>
           <div className="option-icon">
             <img src={assets.profile_image} alt="Profile" />
           </div>

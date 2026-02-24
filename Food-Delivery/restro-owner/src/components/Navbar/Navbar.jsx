@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import Notifications from "../Notifications/Notifications";
 
-const Navbar = () => {
+const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
   const navigate = useNavigate();
   const { token, admin, setAdmin, setToken } = useContext(StoreContext);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -53,6 +53,15 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
+        {/* Mobile Menu Toggle */}
+        <button className="mobile-menu-toggle" onClick={toggleSidebar}>
+          <div className={`hamburger ${isSidebarOpen ? 'open' : ''}`}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </button>
+        
         <img className="logo" src={assets.newlogo} alt="Restaurant Logo" />
         <div className="brand-text">
           <h1>Restaurant Manager</h1>
@@ -65,29 +74,29 @@ const Navbar = () => {
           {token && <Notifications />}
           
           <div className="profile-section">
-            <div className="profile-dropdown" ref={dropdownRef}>
-              <button 
-                className="profile-trigger"
-                onClick={toggleMenu}
-              >
-                <img className="profile-image" src={assets.profile_image} alt="Profile" />
-                <span className="profile-name">Admin</span>
-                <div className={`dropdown-arrow ${isMenuOpen ? 'open' : ''}`}>▼</div>
-              </button>
-              
-              {isMenuOpen && (
-                <div className="dropdown-menu">
-                  <div className="dropdown-header">
-                    <img src={assets.profile_image} alt="Profile" />
-                    <div>
-                      <p className="user-name">Restaurant Owner</p>
-                      <p className="user-role">Administrator</p>
+            {token ? (
+              <div className="profile-dropdown" ref={dropdownRef}>
+                <button 
+                  className="profile-trigger"
+                  onClick={toggleMenu}
+                >
+                  <img className="profile-image" src={assets.profile_image} alt="Profile" />
+                  <span className="profile-name">Admin</span>
+                  <div className={`dropdown-arrow ${isMenuOpen ? 'open' : ''}`}>▼</div>
+                </button>
+                
+                {isMenuOpen && (
+                  <div className="dropdown-menu">
+                    <div className="dropdown-header">
+                      <img src={assets.profile_image} alt="Profile" />
+                      <div>
+                        <p className="user-name">Restaurant Owner</p>
+                        <p className="user-role">Administrator</p>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="dropdown-divider"></div>
-                  
-                  {token ? (
+                    
+                    <div className="dropdown-divider"></div>
+                    
                     <button 
                       className="dropdown-item logout-btn" 
                       onClick={(e) => {
@@ -98,21 +107,18 @@ const Navbar = () => {
                       <span className="item-icon">🚪</span>
                       <span>Logout</span>
                     </button>
-                  ) : (
-                    <button 
-                      className="dropdown-item login-btn" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate("/");
-                      }}
-                    >
-                      <span className="item-icon">🔑</span>
-                      <span>Login</span>
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button 
+                className="login-button"
+                onClick={() => navigate("/")}
+              >
+                <span className="login-icon">🔑</span>
+                <span>Login</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
