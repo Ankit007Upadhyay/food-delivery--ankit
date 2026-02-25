@@ -17,7 +17,7 @@ const port =process.env.PORT || 4000;
 //middlewares
 app.use(express.json());
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5177', 'https://food-delivery-ankit-backend.onrender.com'],
+  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5177', 'https://food-delivery-ankit-backend.onrender.com', 'https://food-delivery-ankit-front.vercel.app'],
   credentials: true
 }));
 
