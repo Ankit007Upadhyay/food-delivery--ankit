@@ -1,0 +1,456 @@
+/* Modern Sidebar Styles */
+.sidebar {
+  width: 280px;
+  background: linear-gradient(180deg, #1e293b 0%, #334155 100%);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.sidebar-brand {
+  padding: 24px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.sidebar-close-btn {
+  display: none;
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.brand-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: white;
+  padding: 4px;
+}
+
+.sidebar-brand h2 {
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-option {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  color: #cbd5e1;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  margin: 0 12px;
+  border-radius: 12px;
+}
+
+.sidebar-option::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.3s ease;
+  opacity: 0.1;
+}
+
+.sidebar-option:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  transform: translateX(4px);
+}
+
+.sidebar-option:hover::before {
+  width: 100%;
+}
+
+.sidebar-option.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transform: translateX(4px);
+}
+
+.option-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  margin-right: 12px;
+  transition: all 0.3s ease;
+}
+
+.sidebar-option:hover .option-icon {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.sidebar-option.active .option-icon {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.option-icon img {
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) invert(1);
+}
+
+.option-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.option-title {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.option-description {
+  font-size: 12px;
+  opacity: 0.7;
+  line-height: 1.2;
+}
+
+.option-arrow {
+  font-size: 18px;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+}
+
+.sidebar-option:hover .option-arrow,
+.sidebar-option.active .option-arrow {
+  opacity: 0.8;
+  transform: translateX(0);
+}
+
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.footer-info p {
+  color: #94a3b8;
+  font-size: 12px;
+  margin: 0;
+  text-align: center;
+}
+
+.version {
+  color: #64748b;
+  font-size: 10px;
+  text-align: center;
+  display: block;
+  margin-top: 4px;
+}
+
+/* Mobile Responsive Design */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 240px;
+  }
+  
+  .sidebar-brand {
+    padding: 20px 16px;
+  }
+  
+  .brand-logo {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .sidebar-brand h2 {
+    font-size: 16px;
+  }
+  
+  .sidebar-option {
+    padding: 14px 16px;
+  }
+  
+  .option-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .option-icon img {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .option-title {
+    font-size: 14px;
+  }
+  
+  .option-description {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    transform: none;
+    transition: none;
+  }
+  
+  .sidebar-brand {
+    padding: 20px 16px;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+  
+  .sidebar-close-btn {
+    display: flex;
+  }
+  
+  .brand-logo {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .sidebar-brand h2 {
+    font-size: 18px;
+    display: block;
+  }
+  
+  .sidebar-nav {
+    padding: 20px 0;
+  }
+  
+  .sidebar-option {
+    padding: 16px 16px;
+    gap: 12px;
+    justify-content: flex-start;
+  }
+  
+  .option-icon {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+  }
+  
+  .option-icon img {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .option-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .option-title {
+    font-size: 15px;
+    font-weight: 600;
+    display: block;
+    color: #cbd5e1;
+  }
+  
+  .option-description {
+    font-size: 12px;
+    display: block;
+    opacity: 0.8;
+    color: #94a3b8;
+  }
+  
+  .option-arrow {
+    display: block;
+    opacity: 0.6;
+    font-size: 16px;
+    color: #64748b;
+  }
+  
+  .sidebar-footer {
+    padding: 20px 16px;
+  }
+  
+  .footer-info p {
+    font-size: 12px;
+  }
+  
+  .version {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 260px;
+  }
+  
+  .sidebar-brand {
+    padding: 16px 12px;
+  }
+  
+  .brand-logo {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .sidebar-brand h2 {
+    font-size: 16px;
+  }
+  
+  .sidebar-nav {
+    padding: 16px 0;
+  }
+  
+  .sidebar-option {
+    padding: 14px 12px;
+    gap: 10px;
+  }
+  
+  .option-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+  
+  .option-icon img {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .option-title {
+    font-size: 14px;
+  }
+  
+  .option-description {
+    font-size: 11px;
+  }
+  
+  .option-arrow {
+    font-size: 14px;
+  }
+  
+  .sidebar-footer {
+    padding: 16px 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .sidebar {
+    width: 240px;
+  }
+  
+  .sidebar-brand {
+    padding: 12px 8px;
+  }
+  
+  .brand-logo {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .sidebar-brand h2 {
+    font-size: 14px;
+  }
+  
+  .sidebar-option {
+    padding: 12px 8px;
+    gap: 8px;
+  }
+  
+  .option-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
+  
+  .option-icon img {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .option-title {
+    font-size: 13px;
+  }
+  
+  .option-description {
+    font-size: 10px;
+  }
+}
+
+/* Animation for sidebar items */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sidebar-option {
+  animation: slideInLeft 0.5s ease forwards;
+}
+
+.sidebar-option:nth-child(1) { animation-delay: 0.1s; }
+.sidebar-option:nth-child(2) { animation-delay: 0.2s; }
+.sidebar-option:nth-child(3) { animation-delay: 0.3s; }
+.sidebar-option:nth-child(4) { animation-delay: 0.4s; }

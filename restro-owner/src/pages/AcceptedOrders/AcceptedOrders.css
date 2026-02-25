@@ -1,0 +1,118 @@
+.accepted-orders-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.refresh-btn{
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.3s;
+}
+
+.refresh-btn:hover{
+    background-color: #45a049;
+}
+
+.order-item{
+    display: grid;
+    grid-template-columns: 0.5fr 2fr 1fr 1fr 1fr;
+    align-items: start;
+    gap: 30px;
+    border: 1px solid #4CAF50;
+    padding: 20px;
+    margin: 30px 0px;
+    font-size: 14px;
+    color: #505050;
+    background-color: #f9fff9;
+}
+
+.order-item-food, .order-item-name{
+    font-weight: 600;
+}
+
+.order-item-name{
+    margin-top: 30px;
+    margin-bottom: 5px;
+}
+
+.order-item-address{
+    margin-bottom: 10px;
+}
+
+.order-item-payment {
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+.order-item-payment p {
+    margin: 2px 0;
+}
+
+.order-item-payment strong {
+    color: #333;
+}
+
+.order-item-actions{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 200px;
+}
+
+.item-action{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 8px;
+    background-color: #f0f8f0;
+    border-radius: 5px;
+    border: 1px solid #4CAF50;
+}
+
+.item-name{
+    font-size: 12px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.accepted-time{
+    font-size: 10px;
+    color: #666;
+    margin: 0;
+}
+
+.status-select{
+    background-color: #e8f5e8;
+    border: 1px solid #4CAF50;
+    width: 100%;
+    padding: 5px;
+    border-radius: 4px;
+    font-size: 11px;
+    outline: none;
+}
+
+@media (max-width:1000px) {
+    .order-item{
+        font-size: 12px;
+        grid-template-columns: 0.5fr 2fr 1fr;
+        padding: 15px 8px;
+    }
+    .status-select{
+        padding: 3px;
+        font-size: 10px;
+    }
+    .order-item img{
+        width: 40px;
+    }
+}
