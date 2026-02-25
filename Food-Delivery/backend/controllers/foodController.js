@@ -1,6 +1,7 @@
 import foodModel from "../models/foodModel.js";
 import userModel from "../models/userModel.js";
 import fs from "fs";
+import mongoose from "mongoose";
 
 // add food items
 
@@ -32,15 +33,24 @@ const addFood = async (req, res) => {
 const listFood = async (req, res) => {
   try {
     console.log("=== Fetching all food items ===");
-    const foods = await foodModel.find({});
-    console.log("✅ Found", foods.length, "food items in database");
-    if (foods.length > 0) {
-      console.log("Sample food item:", foods[0]);
+    
+    // Check database connection first
+    if (mongoose.connection.readyState !== 1) {
+      console.log("❌ Database not connected");
+      return res.status(500).json({ success: false, message: "Database not connected" });
     }
+    
+    const foods = await foodModel.find({}).populate('addedBy', 'name email');
+    console.log("✅ Found", foods.length, "food items in database");
+    
+    if (foods.length > 0) {
+      console.log("Sample food item:", foods[0].name);
+    }
+    
     res.json({ success: true, data: foods });
   } catch (error) {
-    console.log("❌ Error fetching food list:", error);
-    res.json({ success: false, message: "Error" });
+    console.error("❌ Error fetching food list:", error);
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 

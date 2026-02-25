@@ -6,7 +6,7 @@ export const StoreContext = createContext(null);
 const StoreContextProvider = (props) => {
   const [token, setToken] = useState("");
   const [admin, setAdmin] = useState(false);
-  const url = "https://food-delivery-ankit-backend.onrender.com/";
+  const url = "https://food-delivery-ankit-backend.onrender.com";
 
 
   useEffect(() => {
