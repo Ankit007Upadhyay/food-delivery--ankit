@@ -13,7 +13,8 @@ import { StoreContext } from "./context/StoreContext";
 import "./App.css";
 
 const App = () => {
-  const url = "https://food-delivery-ankit-backend.onrender.com";
+  const url = import.meta.env.VITE_API_URL;
+
   const { token } = useContext(StoreContext);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
