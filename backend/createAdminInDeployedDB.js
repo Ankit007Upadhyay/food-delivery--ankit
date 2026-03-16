@@ -14,7 +14,7 @@ const createAdminInDeployedDB = async () => {
     // Check if admin exists
     const existingAdmin = await userModel.findOne({ email: "wizard7@gmail.com" });
     if (existingAdmin) {
-      console.log("✅ Admin already exists in deployed DB");
+      console.log(" Admin already exists in deployed DB");
       console.log("Email:", existingAdmin.email);
       console.log("Role:", existingAdmin.role);
       console.log("Name:", existingAdmin.name);
@@ -31,7 +31,7 @@ const createAdminInDeployedDB = async () => {
       });
 
       await admin.save();
-      console.log("✅ Admin created successfully in deployed DB");
+      console.log(" Admin created successfully in deployed DB");
       console.log("Email: wizard7@gmail.com");
       console.log("Password: wizGoFood2004");
       console.log("Role: admin");
